@@ -18,6 +18,7 @@ csvmTransform = function(x, lambda, cluster.label, sparse = TRUE) {
     tilde.x = as(tilde.x,'dgCMatrix')
     tilde.x = as(tilde.x, 'matrix.csr')
   } else {
+    x = as(x,'matrix')
     tilde.x = matrix(0,n,k*m)
     for (i in 1:k) {
       row.index = which(cluster.label == i)
@@ -31,9 +32,11 @@ csvmTransform = function(x, lambda, cluster.label, sparse = TRUE) {
 
 clusterSVM = function(x, y, cluster.label = NULL, lambda = 1, sparse = TRUE, 
                       type = 1, cost = 1, epsilon = NULL, svr_eps = NULL, 
-                      bias = TRUE, wi = NULL, verbose = TRUE, 
+                      bias = TRUE, wi = NULL, verbose = TRUE, seed = 1024,
                       cluster.FUN = stats::kmeans, ...) {
   
+  if (!is.null(seed))
+    set.seed(seed)
   if (is.null(cluster.label)) {
     cluster.result = cluster.FUN(x, ...)
     cluster.label = cluster.result$cluster

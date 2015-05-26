@@ -3,7 +3,8 @@ require(Matrix)
 read.libsvm = function( filename, sparse = TRUE ) {
   content = readLines( filename )
   num_lines = length( content )
-  tomakemat = cbind(1:num_lines, -1, substr(content,1,1))
+  space_ind = regexpr('\\s+',content)
+  tomakemat = cbind(1:num_lines, -1, substr(content,1,space_ind-1))
   
   # loop over lines
   makemat = rbind(tomakemat,
@@ -25,4 +26,8 @@ read.libsvm = function( filename, sparse = TRUE ) {
   return( yx )
 }
 
-
+rowl2norm = function(x) {
+  rs = 1/sqrt(rowSums(x^2))
+  new.x = Diagonal(x=rs) %*% x
+  return(new.x)
+}
