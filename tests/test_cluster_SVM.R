@@ -1,5 +1,6 @@
 require(LiglineaR)
 require(Matrix)
+require(SparseM)
 require(AUC)
 source('../R/clusterSVM.R')
 source('../R/utils.R')

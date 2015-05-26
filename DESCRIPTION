@@ -6,7 +6,10 @@ Description: Ensemble Learning Algorithms Based on SVM
 Depends: 
     R (>= 3.1.2),
     e1071,
-    stats
+    LiblineaR,
+    stats,
+    Matrix,
+    SparseM
 License: Apache License (== 2.0) | file LICENSE
 LazyData: true
 
