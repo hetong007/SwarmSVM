@@ -14,8 +14,9 @@ csvmTransform = function(x, lambda, cluster.label, sparse = TRUE) {
       val = c(val, as.vector(x[which(cluster.label == i),]))
     }
     tilde.x = spMatrix(n, k*m, i = row.index, j = col.index, x = val)
-    tilde.x = as(tilde.x,'dgCMatrix')
     tilde.x = cBind(x / sqrt(lambda), tilde.x)
+    tilde.x = as(tilde.x,'dgCMatrix')
+    tilde.x = as(tilde.x, 'matrix.csr')
   } else {
     tilde.x = matrix(0,n,k*m)
     for (i in 1:k) {
@@ -29,10 +30,8 @@ csvmTransform = function(x, lambda, cluster.label, sparse = TRUE) {
 }
 
 clusterSVM = function(x, y, cluster.label = NULL, lambda = 1, sparse = TRUE, 
-                      scale = TRUE, type = NULL, cost = 1, class.weights = NULL,
-                      cachesize = 40, tolerance = 0.001, epsilon = 0.1,
-                      shrinking = TRUE, probability = FALSE, fitted = TRUE,
-                      subset, na.action = na.omit, 
+                      type = 1, cost = 1, epsilon = NULL, svr_eps = NULL, 
+                      bias = TRUE, wi = NULL, verbose = TRUE, 
                       cluster.FUN = stats::kmeans, ...) {
   
   if (is.null(cluster.label)) {
@@ -54,10 +53,9 @@ clusterSVM = function(x, y, cluster.label = NULL, lambda = 1, sparse = TRUE,
   
   tilde.x = csvmTransform(x, lambda, cluster.label, sparse = sparse)
   
-  svm.result = svm(tilde.x, y, scale = scale, type = type, kernel = "linear", cost = cost,
-                   class.weights = class.weights, cachesize = cachesize, 
-                   tolerance = tolerance, epsilon = epsilon, shrinking = shrinking,
-                   cross = 0, probability = probability, fitted = fitted)
+  svm.result = LiblineaR(data = tilde.x, target = y, type = type, cost = cost, 
+                         epsilon = epsilon, svr_eps = svr_eps, bias = bias,
+                         wi = wi, cross = 0, verbose = verbose)
   
   cluster.svm.result = list(svm = svm.result, 
                             lambda = lambda,
@@ -82,6 +80,6 @@ predict.clusterSVM = function(object, newdata, ...) {
   tilde.newdata = csvmTransform(newdata, object$lambda, new.label, object$sparse)
   
   # Make prediction
-  preds = predict(object$svm, tilde.newdata)
+  preds = predict(object$svm, tilde.newdata, ...)
   return(preds)
 }
