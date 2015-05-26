@@ -3,7 +3,10 @@ Title: Ensemble Learning Algorithms Based on SVM
 Version: 0.0.0.9000
 Authors@R: Tong He <hetong007@gmail.com>, Aydin Demircioglu <aydin.demircioglu@ini.ruhr-uni-bochum.de>
 Description: Ensemble Learning Algorithms Based on SVM
-Depends: R (>= 3.1.2)
+Depends: 
+    R (>= 3.1.2),
+    e1071,
+    stats
 License: Apache License (== 2.0) | file LICENSE
 LazyData: true
 
