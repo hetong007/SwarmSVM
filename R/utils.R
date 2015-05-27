@@ -1,6 +1,6 @@
 require(Matrix)
 
-read.libsvm = function( filename, sparse = TRUE ) {
+read.libsvm = function( filename, sparse = TRUE, dims = NULL) {
   content = readLines( filename )
   num_lines = length( content )
   space_ind = regexpr('\\s+',content)
@@ -17,10 +17,17 @@ read.libsvm = function( filename, sparse = TRUE ) {
                           })))
   class(makemat) = "numeric"
   
-  #browser()
-  yx = sparseMatrix(i = makemat[,1], 
-                    j = makemat[,2]+2, 
-                    x = makemat[,3])
+  if (!is.null(dims)) {
+    yx = sparseMatrix(i = makemat[,1], 
+                      j = makemat[,2]+2, 
+                      x = makemat[,3],
+                      dims = dims)
+  } else {
+    yx = sparseMatrix(i = makemat[,1], 
+                      j = makemat[,2]+2, 
+                      x = makemat[,3])
+  }
+  
   if (!sparse)
     yx = as(yx,'matrix')
   return( yx )

@@ -22,3 +22,26 @@ usps.t[,-1] = rowl2norm(usps.t[,-1])
 usps[,1] = as.numeric(usps[,1]%%2==0)
 usps.t[,1] = as.numeric(usps.t[,1]%%2==0)
 save(usps,usps.t,file='../data/usps.RData',compress = 'xz')
+
+# mnist
+mnist = read.libsvm('../data/mnist', dims=c(60000,782))
+mnist.t = read.libsvm('../data/mnist.t',dim=c(10000,782))
+mnist[,-1] = rowl2norm(mnist[,-1])
+mnist.t[,-1] = rowl2norm(mnist.t[,-1])
+
+mnist38 = mnist[which(mnist[,1]==3 | mnist[,1]==8),]
+mnist38.t = mnist.t[which(mnist.t[,1]==3 | mnist.t[,1]==8),]
+mnist38[,1] = as.numeric(mnist38[,1]==3)
+mnist38.t[,1] = as.numeric(mnist38.t[,1]==3)
+
+mnist49 = mnist[which(mnist[,1]==4 | mnist[,1]==9),]
+mnist49.t = mnist.t[which(mnist.t[,1]==4 | mnist.t[,1]==9),]
+mnist49[,1] = as.numeric(mnist49[,1]==4)
+mnist49.t[,1] = as.numeric(mnist49.t[,1]==4)
+
+mnistoe = mnist
+mnistoe[,1] = as.numeric(as.vector(mnist[,1])%%2==0)
+mnistoe.t = mnist.t
+mnistoe.t[,1] = as.numeric(as.vector(mnist.t[,1])%%2==0)
+save(mnist38,mnist38.t,mnist49,mnist49.t,mnistoe,mnistoe.t,
+     file='../data/mnist.RData',compress = 'xz')
