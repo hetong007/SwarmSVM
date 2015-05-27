@@ -1,7 +1,9 @@
 Package: EnsembleSVM
 Title: Ensemble Learning Algorithms Based on SVM
 Version: 0.0.0.9000
-Authors@R: Tong He <hetong007@gmail.com>, Aydin Demircioglu <aydin.demircioglu@ini.ruhr-uni-bochum.de>
+Date: 2015-05-27
+Author: Tong He <hetong007@gmail.com>, Aydin Demircioglu <aydin.demircioglu@ini.ruhr-uni-bochum.de>
+Maintainer: Tong He <hetong007@gmail.com>
 Description: Ensemble Learning Algorithms Based on SVM
 Depends: 
     R (>= 3.0.2),
