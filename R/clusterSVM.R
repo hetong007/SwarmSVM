@@ -4,6 +4,14 @@ csvmTransform = function(x, lambda, cluster.label, sparse = TRUE) {
   n = nrow(x)
   m = ncol(x)
   k = max(cluster.label)
+  if (k == 1) {
+    warning('Only one cluster for the data, no transform is performed.')
+    if (sparse) {
+      return(as(x,'matrix.csr'))
+    } else {
+      return(as.matrix(x))
+    }
+  }
   
   if (sparse){
     row.index = NULL
@@ -17,6 +25,7 @@ csvmTransform = function(x, lambda, cluster.label, sparse = TRUE) {
     tilde.x = spMatrix(n, k*m, i = row.index, j = col.index, x = val)
     tilde.x = cBind(x / sqrt(lambda), tilde.x)
     tilde.x = as(tilde.x,'dgCMatrix')
+    # LiblineaR only support sparse matrix of the class "matrix.csr"
     tilde.x = as(tilde.x, 'matrix.csr')
   } else {
     x = as(x,'matrix')
@@ -29,6 +38,15 @@ csvmTransform = function(x, lambda, cluster.label, sparse = TRUE) {
     tilde.x = cbind(x / sqrt(lambda), tilde.x)
   }
   return(tilde.x)
+}
+
+eucliDist= function(x, centers) {
+  if (nrow(centers)>1) {
+    result = apply(centers, 1, function(C) colSums( (t(x)-C)^2 ))
+  } else {
+    result = colSums((t(x)-as.vector(centers))^2)
+  }
+  return(result)
 }
 
 #' Clustered Support Vector Machine
@@ -82,14 +100,14 @@ csvmTransform = function(x, lambda, cluster.label, sparse = TRUE) {
 #' csvm.obj = clusterSVM(x = xTrain, y = yTrain, sparse = FALSE,
 #'     centers = 2, iter.max = 1000, 
 #'     valid.x = xTest,valid.y = yTest)
-#' pred = predict.clusterSVM(csvm.obj, xTest)
+#' pred = predict(csvm.obj, xTest)
 #' 
 #' @export
 #' 
 clusterSVM = function(x, y, cluster.label = NULL, lambda = 1, sparse = TRUE, 
                       valid.x = NULL, valid.y = NULL, valid.metric = NULL,
                       type = 1, cost = 1, epsilon = NULL, svr_eps = NULL, 
-                      bias = TRUE, wi = NULL, verbose = 1, seed = 0,
+                      bias = TRUE, wi = NULL, verbose = 1, seed = NULL,
                       cluster.FUN = stats::kmeans, ...) {
   
   if (lambda <= 0)
@@ -103,13 +121,17 @@ clusterSVM = function(x, y, cluster.label = NULL, lambda = 1, sparse = TRUE,
     cluster.result = cluster.FUN(x, ...)
     cluster.label = cluster.result$cluster
     cluster.centers = cluster.result$centers
+    cluster.label = match(cluster.label, unique(cluster.label))
     k = max(cluster.label)
+    if (k==1)
+      cluster.centers = matrix(cluster.centers,nrow=1)
   } else {
+    cluster.label = match(cluster.label, unique(cluster.label))
     k = max(cluster.label)
-    cluster.centers = rep(0,length(cluster.label))
+    cluster.centers = matrix(0,k,length(cluster.label))
     for (i in 1:k) {
       index = which(cluster.label == i)
-      cluster.centers[i] = colMeans(x[index,])
+      cluster.centers[i,] = colMeans(x[index,])
     }
   }
   if (verbose>0)
@@ -135,12 +157,13 @@ clusterSVM = function(x, y, cluster.label = NULL, lambda = 1, sparse = TRUE,
                             sparse = sparse,
                             label = cluster.label, 
                             centers = cluster.centers)
+  cluster.svm.result = structure(cluster.svm.result, class = 'clusterSVM')
   
   if (!is.null(valid.x)) {
     time.point = proc.time()
     
     if (is.null(valid.y)) {
-      cluster.svm.result$valid.pred = predict.clusterSVM(cluster.svm.result, valid.x)$predictions
+      cluster.svm.result$valid.pred = predict(cluster.svm.result, valid.x)$predictions
     } else {
       if (is.null(valid.metric)) {
         if (type<=7) {
@@ -152,7 +175,7 @@ clusterSVM = function(x, y, cluster.label = NULL, lambda = 1, sparse = TRUE,
                                                     name = 'RMSE')
         }
       }
-      cluster.svm.result$valid.pred = predict.clusterSVM(cluster.svm.result, valid.x)$predictions
+      cluster.svm.result$valid.pred = predict(cluster.svm.result, valid.x)$predictions
       valid.result = valid.metric(cluster.svm.result$valid.pred, valid.y)
       cluster.svm.result$valid.score = valid.result$score
       cluster.svm.result$valid.metric.name = valid.result$name
@@ -169,7 +192,7 @@ clusterSVM = function(x, y, cluster.label = NULL, lambda = 1, sparse = TRUE,
       cat(cluster.svm.result$valid.metric.name, 'Score:', cluster.svm.result$valid.score, '\n')
   }
   
-  cluster.svm.result = structure(cluster.svm.result, class = 'clusterSVM')
+  # cluster.svm.result = structure(cluster.svm.result, class = 'clusterSVM')
   return(cluster.svm.result)
 }
 
@@ -186,9 +209,6 @@ clusterSVM = function(x, y, cluster.label = NULL, lambda = 1, sparse = TRUE,
 #' 
 setMethod("predict", signature = "clusterSVM",
           definition = function(object, newdata, ...) {
-  eucliDist= function(x, centers) {
-    apply(centers, 1, function(C) colSums( (t(x)-C)^2 ))
-  }
   
   if (class(object)!='clusterSVM')
     stop('Please predict with the model from clusterSVM.')
@@ -197,8 +217,13 @@ setMethod("predict", signature = "clusterSVM",
     return(fitted(object$svm))
   
   # Assign label
-  dist = eucliDist(newdata, object$centers)
-  new.label = max.col(-dist)
+  k = nrow(object$centers)
+  if (k==1) {
+    new.label = rep(1,nrow(newdata))
+  } else {
+    dist = eucliDist(newdata, object$centers)
+    new.label = max.col(-dist)
+  }
   
   # Transformation
   tilde.newdata = csvmTransform(newdata, object$lambda, new.label, object$sparse)

@@ -1,4 +1,6 @@
-require(Matrix)
+#' @import Matrix
+#' @importClassesFrom SparseM matrix.csr
+#' @import LiblineaR
 
 read.libsvm = function( filename, sparse = TRUE, dims = NULL) {
   content = readLines( filename )
@@ -33,8 +35,4 @@ read.libsvm = function( filename, sparse = TRUE, dims = NULL) {
   return( yx )
 }
 
-rowl2norm = function(x) {
-  rs = 1/sqrt(rowSums(x^2))
-  new.x = Diagonal(x=rs) %*% x
-  return(new.x)
-}
+

@@ -2,3 +2,6 @@
 
 export(clusterSVM)
 exportMethods(predict)
+import(LiblineaR)
+import(Matrix)
+importClassesFrom(SparseM,matrix.csr)

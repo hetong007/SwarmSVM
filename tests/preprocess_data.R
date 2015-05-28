@@ -1,4 +1,11 @@
 source('../R/utils.R')
+require(Matrix)
+
+rowl2norm = function(x) {
+  rs = 1/sqrt(rowSums(x^2))
+  new.x = Diagonal(x=rs) %*% x
+  return(new.x)
+}
 
 # svmguide1
 svmguide1 = read.libsvm('../data/svmguide1')

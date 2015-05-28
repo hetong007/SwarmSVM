@@ -77,6 +77,6 @@ yTest=y[-train]
 csvm.obj = clusterSVM(x = xTrain, y = yTrain, sparse = FALSE,
     centers = 2, iter.max = 1000,
     valid.x = xTest,valid.y = yTest)
-pred = predict.clusterSVM(csvm.obj, xTest)
+pred = predict(csvm.obj, xTest)
 }
 
