@@ -121,12 +121,12 @@ clusterSVM = function(x, y, cluster.label = NULL, lambda = 1, sparse = TRUE,
     cluster.result = cluster.FUN(x, ...)
     cluster.label = cluster.result$cluster
     cluster.centers = cluster.result$centers
-    cluster.label = match(cluster.label, unique(cluster.label))
+    # cluster.label = match(cluster.label, unique(cluster.label))
     k = max(cluster.label)
     if (k==1)
       cluster.centers = matrix(cluster.centers,nrow=1)
   } else {
-    cluster.label = match(cluster.label, unique(cluster.label))
+    # cluster.label = match(cluster.label, unique(cluster.label))
     k = max(cluster.label)
     cluster.centers = matrix(0,k,length(cluster.label))
     for (i in 1:k) {
