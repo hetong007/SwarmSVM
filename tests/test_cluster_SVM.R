@@ -3,7 +3,7 @@ require(EnsembleSVM)
 ## SVMGUIDE1
 data(svmguide1)
 csvm.obj = clusterSVM(x = svmguide1[,-1], y = svmguide1[,1],
-                      centers = 8, iter.max = 1000, seed = 512,
+                      centers = 8, iter.max = 1000, seed = 512, verbose = 0,
                       valid.x = svmguide1.t[,-1],valid.y = svmguide1.t[,1])
 # Time for Clustering: 0.022 secs
 # Time for Transforming: 0.026 secs
@@ -130,3 +130,65 @@ csvm.obj = clusterSVM(x = mnistoe[,-1], y = mnistoe[,1],
 
 
 
+### Replicated Experiments
+rep.len = 10
+
+score = rep(0,rep.len)
+for (i in 1:rep.len) {
+  csvm.obj = clusterSVM(x = svmguide1[,-1], y = svmguide1[,1],
+                        centers = 8, iter.max = 1000, seed = i, verbose = 0,
+                        valid.x = svmguide1.t[,-1],valid.y = svmguide1.t[,1])
+  score[i] = csvm.obj$valid.score
+}
+cat(mean(score),'+',sd(score))
+# 0.81355 + 0.009937863
+
+score = rep(0,rep.len)
+for (i in 1:rep.len) {
+  csvm.obj = clusterSVM(x = ijcnn1[,-1], y = ijcnn1[,1],
+                        centers = 8, iter.max = 1000, seed = i, verbose = 0,
+                        valid.x = ijcnn1.t[,-1],valid.y = ijcnn1.t[,1])
+  score[i] = csvm.obj$valid.score
+}
+cat(mean(score),'+',sd(score))
+# 0.9446353 + 0.001768465
+
+score = rep(0,rep.len)
+for (i in 1:rep.len) {
+  csvm.obj = clusterSVM(x = usps[,-1], y = usps[,1],
+                        centers = 8, iter.max = 1000, seed = i, verbose = 0,
+                        valid.x = usps.t[,-1],valid.y = usps.t[,1])
+  score[i] = csvm.obj$valid.score
+}
+cat(mean(score),'+',sd(score))
+# 0.9566019 + 0.0009232315
+
+score = rep(0,rep.len)
+for (i in 1:rep.len) {
+  csvm.obj = clusterSVM(x = mnist38[,-1], y = mnist38[,1],
+                        centers = 8, iter.max = 1000, seed = i, verbose = 0,
+                        valid.x = mnist38.t[,-1],valid.y = mnist38.t[,1])
+  score[i] = csvm.obj$valid.score
+}
+cat(mean(score),'+',sd(score))
+# 0.9849294 + 0.001800931
+
+score = rep(0,rep.len)
+for (i in 1:rep.len) {
+  csvm.obj = clusterSVM(x = mnist49[,-1], y = mnist49[,1],
+                        centers = 8, iter.max = 1000, seed = i, verbose = 0,
+                        valid.x = mnist49.t[,-1],valid.y = mnist49.t[,1])
+  score[i] = csvm.obj$valid.score
+}
+cat(mean(score),'+',sd(score))
+# 0.9805625 + 0.001441175
+
+score = rep(0,rep.len)
+for (i in 1:rep.len) {
+  csvm.obj = clusterSVM(x = mnistoe[,-1], y = mnistoe[,1],
+                        centers = 8, iter.max = 1000, seed = i, verbose = 0,
+                        valid.x = mnistoe.t[,-1],valid.y = mnistoe.t[,1])
+  score[i] = csvm.obj$valid.score
+}
+cat(mean(score),'+',sd(score))
+# 0.96069 + 0.000953881
