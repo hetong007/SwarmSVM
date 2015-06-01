@@ -7,7 +7,7 @@
 clusterSVM(x, y, cluster.label = NULL, lambda = 1, sparse = TRUE,
   valid.x = NULL, valid.y = NULL, valid.metric = NULL, type = 1,
   cost = 1, epsilon = NULL, svr_eps = NULL, bias = TRUE, wi = NULL,
-  verbose = 1, seed = 0, cluster.FUN = stats::kmeans, ...)
+  verbose = 1, seed = NULL, cluster.FUN = stats::kmeans, ...)
 }
 \arguments{
 \item{x}{the nxp training data matrix. Could be a matrix or a sparse matrix object.}
