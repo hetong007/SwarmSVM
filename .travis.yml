@@ -11,15 +11,5 @@ r_packages:
     - Marix
     - SparseM
 warnings_are_errors: false
-notifications:
-  email:
-    recipients:
-        - bernd_bischl@gmx.net
-        - michellang@gmail.com
-        - travis.mlr@jakob-r.de
-        - larsko@cs.ubc.ca
-        - schiffner@math.uni-duesseldorf.de
-        - erich.studerus@gmail.com
-    on_success: change
-    on_failure: always
+
 
