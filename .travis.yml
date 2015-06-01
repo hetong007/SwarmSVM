@@ -1,0 +1,25 @@
+language: r
+env:
+    global:
+        - _R_CHECK_TIMINGS_=0
+branches:
+    only:
+        - master
+r_packages:
+    - e1071
+    - LiblineaR
+    - Marix
+    - SparseM
+warnings_are_errors: false
+notifications:
+  email:
+    recipients:
+        - bernd_bischl@gmx.net
+        - michellang@gmail.com
+        - travis.mlr@jakob-r.de
+        - larsko@cs.ubc.ca
+        - schiffner@math.uni-duesseldorf.de
+        - erich.studerus@gmail.com
+    on_success: change
+    on_failure: always
+

@@ -1,5 +1,7 @@
 # EnsembleSVM
 
+[![Build Status](https://travis-ci.org/hetong007/EnsembleSVM.png)](https://travis-ci.org/hetong007/EnsembleSVM)
+
 The repository is an R package about ensemble learning algorithms based on SVM for my Google Summer of Code 2015 project.
 
 It is under development.
