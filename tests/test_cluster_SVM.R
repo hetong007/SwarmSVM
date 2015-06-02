@@ -129,9 +129,9 @@ csvm.obj = clusterSVM(x = mnist49[,-1], y = mnist49[,1],
 # Accuracy Score: 0.9804119
 
 # O vs E
-csvm.obj = clusterSVM(x = mnistoe[,-1], y = mnistoe[,1],
-                      centers = 8, iter.max = 1000, seed = 512,
-                      valid.x = mnistoe.t[,-1],valid.y = mnistoe.t[,1])
+# csvm.obj = clusterSVM(x = mnistoe[,-1], y = mnistoe[,1],
+#                       centers = 8, iter.max = 1000, seed = 512,
+#                       valid.x = mnistoe.t[,-1],valid.y = mnistoe.t[,1])
 # Time for Clustering: 62.051 secs
 # Time for Transforming: 11.932 secs
 # Time for Liblinear: 13.056 secs
