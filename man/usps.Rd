@@ -4,10 +4,10 @@
 \name{usps}
 \alias{usps}
 \title{usps}
-\format{Two data objects \code{usps} and \code{usps}.
+\format{A list of two data objects \code{usps} and \code{usps.t}.
   The first column is the target variable.}
 \usage{
-\code{data(usps)}
+data(usps)
 }
 \description{
 J. J. Hull. A database for handwritten text recognition research.

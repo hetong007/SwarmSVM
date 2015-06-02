@@ -4,10 +4,10 @@
 \name{svmguide1}
 \alias{svmguide1}
 \title{svmguide1}
-\format{Two data objects \code{svmguide1} and \code{svmguide1.t}.
+\format{A list of two data objects \code{svmguide1} and \code{svmguide1.t}.
    The first column is the target variable.}
 \usage{
-\code{data(svmguide1)}
+data(svmguide1)
 }
 \description{
 An astroparticle application from Jan Conrad of Uppsala University, Sweden.

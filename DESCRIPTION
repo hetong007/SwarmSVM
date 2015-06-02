@@ -12,6 +12,8 @@ Imports:
     LiblineaR,
     stats,
     Matrix,
-    SparseM
+    SparseM,
+    kernlab,
+    methods
 License: Apache License (== 2.0) | file LICENSE
 

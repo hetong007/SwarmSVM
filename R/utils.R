@@ -1,9 +1,10 @@
-#' @import Matrix
 #' @importClassesFrom SparseM matrix.csr
+#' @importFrom kernlab kkmeans
+#' @importFrom stats kmeans
+#' @import Matrix
 #' @import LiblineaR
 #' @import e1071
-#' @import stats
-#' @import kernlab kkmeans
+#' @import methods
 
 read.libsvm = function( filename, sparse = TRUE, dims = NULL) {
   content = readLines( filename )
@@ -45,8 +46,8 @@ read.libsvm = function( filename, sparse = TRUE, dims = NULL) {
 #' @docType data
 #' @keywords datasets
 #' @name svmguide1
-#' @usage \code{data(svmguide1)}
-#' @format Two data objects \code{svmguide1} and \code{svmguide1.t}. 
+#' @usage data(svmguide1)
+#' @format A list of two data objects \code{svmguide1} and \code{svmguide1.t}. 
 #'    The first column is the target variable.
 #' 
 NULL
@@ -59,8 +60,8 @@ NULL
 #' @docType data
 #' @keywords datasets
 #' @name usps
-#' @usage \code{data(usps)}
-#' @format Two data objects \code{usps} and \code{usps}. 
+#' @usage data(usps)
+#' @format A list of two data objects \code{usps} and \code{usps.t}. 
 #'   The first column is the target variable.
 #' 
 NULL
@@ -73,8 +74,8 @@ NULL
 #' @docType data
 #' @keywords datasets
 #' @name ijcnn1
-#' @usage \code{data(ijcnn1)}
-#' @format Two data objects \code{ijcnn1} and \code{ijcnn1}. 
+#' @usage data(ijcnn1)
+#' @format A list of two data objects \code{ijcnn1} and \code{ijcnn1.t}. 
 #'   The first column is the target variable.
 #' 
 NULL
@@ -87,8 +88,8 @@ NULL
 #' @docType data
 #' @keywords datasets
 #' @name mnist
-#' @usage \code{data(mnist)}
-#' @format Six data objects \code{mnist38}, \code{mnist38.t}, \code{mnist49}, \code{mnist49.t}, 
+#' @usage data(mnist)
+#' @format A list of six data objects \code{mnist38}, \code{mnist38.t}, \code{mnist49}, \code{mnist49.t}, 
 #'   \code{mnistoe} and \code{mnistoe.t}. 
 #'   The first column is the target variable.
 #' 

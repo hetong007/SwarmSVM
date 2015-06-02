@@ -4,10 +4,10 @@
 \name{ijcnn1}
 \alias{ijcnn1}
 \title{ijcnn1}
-\format{Two data objects \code{ijcnn1} and \code{ijcnn1}.
+\format{A list of two data objects \code{ijcnn1} and \code{ijcnn1.t}.
   The first column is the target variable.}
 \usage{
-\code{data(ijcnn1)}
+data(ijcnn1)
 }
 \description{
 Danil Prokhorov. IJCNN 2001 neural network competition.

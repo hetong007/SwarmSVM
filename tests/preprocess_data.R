@@ -12,14 +12,16 @@
 # svmguide1.t = read.libsvm('../data/svmguide1.t')
 # svmguide1[,-1] = rowl2norm(svmguide1[,-1])
 # svmguide1.t[,-1] = rowl2norm(svmguide1.t[,-1])
-# save(svmguide1,svmguide1.t, file='../data/svmguide1.RData',compress = 'xz')
+# svmguide1 = list(svmguide1,svmguide1.t)
+# save(svmguide1, file='../data/svmguide1.RData',compress = 'xz')
 # 
 # # ijcnn1
 # ijcnn1 = read.libsvm('../data/ijcnn1')
 # ijcnn1.t = read.libsvm('../data/ijcnn1.t')
 # ijcnn1[,-1] = rowl2norm(ijcnn1[,-1])
 # ijcnn1.t[,-1] = rowl2norm(ijcnn1.t[,-1])
-# save(ijcnn1,ijcnn1.t,file='../data/ijcnn1.RData',compress = 'xz')
+# ijcnn1 = list(ijcnn1,ijcnn1.t)
+# save(ijcnn1,file='../data/ijcnn1.RData',compress = 'xz')
 # 
 # # usps
 # usps = read.libsvm('../data/usps')
@@ -28,7 +30,8 @@
 # usps.t[,-1] = rowl2norm(usps.t[,-1])
 # usps[,1] = as.numeric(usps[,1]%%2==0)
 # usps.t[,1] = as.numeric(usps.t[,1]%%2==0)
-# save(usps,usps.t,file='../data/usps.RData',compress = 'xz')
+# usps = list(usps,usps.t)
+# save(usps,file='../data/usps.RData',compress = 'xz')
 # 
 # # mnist
 # mnist = read.libsvm('../data/mnist', dims=c(60000,782))
@@ -50,5 +53,6 @@
 # mnistoe[,1] = as.numeric(as.vector(mnist[,1])%%2==0)
 # mnistoe.t = mnist.t
 # mnistoe.t[,1] = as.numeric(as.vector(mnist.t[,1])%%2==0)
-# save(mnist38,mnist38.t,mnist49,mnist49.t,mnistoe,mnistoe.t,
-#      file='../data/mnist.RData',compress = 'xz')
+# 
+# mnist = list(mnist38,mnist38.t,mnist49,mnist49.t,mnistoe,mnistoe.t)
+# save(mnist, file='../data/mnist.RData',compress = 'xz')

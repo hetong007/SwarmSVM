@@ -4,11 +4,11 @@
 \name{mnist}
 \alias{mnist}
 \title{mnist}
-\format{Six data objects \code{mnist38}, \code{mnist38.t}, \code{mnist49}, \code{mnist49.t},
+\format{A list of six data objects \code{mnist38}, \code{mnist38.t}, \code{mnist49}, \code{mnist49.t},
   \code{mnistoe} and \code{mnistoe.t}.
   The first column is the target variable.}
 \usage{
-\code{data(mnist)}
+data(mnist)
 }
 \description{
 Yann LeCun, L. Bottou, Y. Bengio, and P. Haffner. Gradient-based learning applied to document recognition.
