@@ -119,6 +119,9 @@ clusterSVM = function(x, y, cluster.label = NULL, lambda = 1, sparse = TRUE,
   time.point = proc.time()
   if (is.null(cluster.label)) {
     cluster.result = cluster.FUN(x, ...)
+    if (is.null(cluster.result$cluster) || is.null(cluster.result$centers))
+      stop("The result of the cluster function must be a list with
+           two fields named as cluster and centers.")
     cluster.label = cluster.result$cluster
     cluster.centers = cluster.result$centers
     # cluster.label = match(cluster.label, unique(cluster.label))
