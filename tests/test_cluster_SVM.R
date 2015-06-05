@@ -47,6 +47,47 @@ csvm.obj = clusterSVM(x = svmguide1[,-1], y = svmguide1[,1], seed = 512,
 # Total Time: 12.127 secs
 # Accuracy Score: 0.81325 
 
+# Using RcppMLPACK
+# library(inline)
+# library(RcppMLPACK)
+# code <- '
+# arma::mat data = as<arma::mat>(test);
+# int clusters = as<int>(n);
+# arma::Col<size_t> assignments;
+# mlpack::kmeans::KMeans<> k;
+# k.Cluster(data, clusters, assignments);
+# return List::create(_["clusters"] = clusters,
+# _["result"] = assignments);
+# '
+# mlKmeans <- cxxfunction(signature(test="numeric", n ="integer"), code,
+#                         plugin="RcppMLPACK")
+# cluster.fun = function(x, centers, ...) {
+#   result = mlKmeans(t(as.matrix(x)),centers[1])
+#   result$cluster = result$result+1
+#   k = max(result$cluster)
+#   cluster.centers = matrix(0,k,ncol(x))
+#   for (i in 1:k) {
+#     index = which(result$cluster == i)
+#     cluster.centers[i,] = colMeans(x[index,,drop = FALSE])
+#   }
+#   result$centers = cluster.centers
+#   result$clusters = NULL
+#   result$result = NULL
+#   return(result)
+# }
+# csvm.obj = clusterSVM(x = svmguide1[,-1], y = svmguide1[,1], seed = 512,
+#                       cluster.FUN = cluster.fun, centers = 8, 
+#                       valid.x = svmguide1.t[,-1],valid.y = svmguide1.t[,1])
+# KMeans::Cluster(): converged after 47 iterations.
+# exiting from: cluster.FUN(x, ...)
+# Time for Clustering: 20.174 secs
+# Time for Transforming: 12.39 secs
+# Time for Liblinear: 12.993 secs
+# Time for Validation: 4.106 secs
+# 
+# Total Time: 49.681 secs
+# Accuracy Score: 0.9614 
+
 # Only one cluster
 csvm.obj = clusterSVM(x = svmguide1[,-1], y = svmguide1[,1],
                       centers = 1, iter.max = 1000, seed = 512,

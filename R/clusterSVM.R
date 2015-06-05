@@ -131,7 +131,7 @@ clusterSVM = function(x, y, cluster.label = NULL, lambda = 1, sparse = TRUE,
   } else {
     # cluster.label = match(cluster.label, unique(cluster.label))
     k = max(cluster.label)
-    cluster.centers = matrix(0,k,length(cluster.label))
+    cluster.centers = matrix(0,k,ncol(x))
     for (i in 1:k) {
       index = which(cluster.label == i)
       cluster.centers[i,] = colMeans(x[index,])
