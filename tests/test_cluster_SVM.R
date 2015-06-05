@@ -1,4 +1,4 @@
-require(EnsembleSVM)
+require(SwarmSVM)
 
 ## SVMGUIDE1
 data(svmguide1)
