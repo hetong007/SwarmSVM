@@ -52,45 +52,4 @@ read.libsvm = function( filename, sparse = TRUE, dims = NULL) {
 #' 
 NULL
 
-#' usps
-#' 
-#' J. J. Hull. A database for handwritten text recognition research. 
-#'   IEEE Transactions on Pattern Analysis and Machine Intelligence, 16(5):550-554, May 1994. 
-#' 
-#' @docType data
-#' @keywords datasets
-#' @name usps
-#' @usage data(usps)
-#' @format A list of two data objects \code{usps} and \code{usps.t}. 
-#'   The first column is the target variable.
-#' 
-NULL
 
-#' ijcnn1
-#' 
-#' Danil Prokhorov. IJCNN 2001 neural network competition.
-#'   Slide presentation in IJCNN'01, Ford Research Laboratory, 2001. 
-#' 
-#' @docType data
-#' @keywords datasets
-#' @name ijcnn1
-#' @usage data(ijcnn1)
-#' @format A list of two data objects \code{ijcnn1} and \code{ijcnn1.t}. 
-#'   The first column is the target variable.
-#' 
-NULL
-
-#' mnist
-#' 
-#' Yann LeCun, L. Bottou, Y. Bengio, and P. Haffner. Gradient-based learning applied to document recognition.
-#'   Proceedings of the IEEE, 86(11):2278-2324, November 1998. 
-#' 
-#' @docType data
-#' @keywords datasets
-#' @name mnist
-#' @usage data(mnist)
-#' @format A list of six data objects \code{mnist38}, \code{mnist38.t}, \code{mnist49}, \code{mnist49.t}, 
-#'   \code{mnistoe} and \code{mnistoe.t}. 
-#'   The first column is the target variable.
-#' 
-NULL
