@@ -103,7 +103,11 @@ csvm.obj = clusterSVM(x = svmguide1[,-1], y = svmguide1[,1],
 
 
 ## IJCNN1
-data(ijcnn1)
+# data(ijcnn1)
+local.file.name = tempfile()
+download.file("http://www.sfu.ca/~hetongh/data/ijcnn1.RData",local.file.name)
+load(local.file.name)
+
 ijcnn1.t = ijcnn1[[2]]
 ijcnn1 = ijcnn1[[1]]
 csvm.obj = clusterSVM(x = ijcnn1[,-1], y = ijcnn1[,1],
@@ -120,7 +124,11 @@ csvm.obj = clusterSVM(x = ijcnn1[,-1], y = ijcnn1[,1],
 
 
 ## USPS
-data(usps)
+# data(usps)
+local.file.name = tempfile()
+download.file("http://www.sfu.ca/~hetongh/data/usps.RData",local.file.name)
+load(local.file.name)
+
 usps.t = usps[[2]]
 usps = usps[[1]]
 csvm.obj = clusterSVM(x = usps[,-1], y = usps[,1],
@@ -137,7 +145,11 @@ csvm.obj = clusterSVM(x = usps[,-1], y = usps[,1],
 
 
 ## MNIST
-data(mnist)
+# data(mnist)
+local.file.name = tempfile()
+download.file("http://www.sfu.ca/~hetongh/data/mnist.RData",local.file.name)
+load(local.file.name)
+
 mnist38 = mnist[[1]]
 mnist38.t = mnist[[2]]
 mnist49 = mnist[[3]]
