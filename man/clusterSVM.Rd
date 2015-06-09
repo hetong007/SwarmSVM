@@ -6,8 +6,8 @@
 \usage{
 clusterSVM(x, y, cluster.label = NULL, lambda = 1, sparse = TRUE,
   valid.x = NULL, valid.y = NULL, valid.metric = NULL, type = 1,
-  cost = 1, epsilon = NULL, svr_eps = NULL, bias = TRUE, wi = NULL,
-  verbose = 1, seed = NULL, cluster.FUN = stats::kmeans, ...)
+  cost = 1, epsilon = NULL, svr.eps = NULL, bias = TRUE, wi = NULL,
+  verbose = 1, seed = NULL, cluster.fun = cluster.fun.mlpack, ...)
 }
 \arguments{
 \item{x}{the nxp training data matrix. Could be a matrix or a sparse matrix object.}
@@ -40,7 +40,7 @@ See details in \code{LiblineaR}.}
 \item{epsilon}{set tolerance of termination criterion for optimization.
 If NULL, the LIBLINEAR defaults are used, which are:}
 
-\item{svr_eps}{set tolerance margin (epsilon) in regression loss function of SVR. Not used for classification methods.}
+\item{svr.eps}{set tolerance margin (epsilon) in regression loss function of SVR. Not used for classification methods.}
 
 \item{bias}{if bias is \code{TRUE} (default), instances of data becomes [data; 1].}
 
@@ -55,10 +55,10 @@ If set to 2, the running time ,validation score (if applicable) and the \code{Li
 
 \item{seed}{the random seed. Set it to \code{NULL} to randomize the model.}
 
-\item{cluster.FUN}{set to \code{kmeans} by default. Customized function is acceptable,
+\item{cluster.fun}{set to \code{kmeans} by default. Customized function is acceptable,
 as long as the resulting list contains two fields named as \code{cluster} and \code{centers}.}
 
-\item{...}{additional parameters passing to \code{cluster.FUN}.}
+\item{...}{additional parameters passing to \code{cluster.fun}.}
 }
 \description{
 Implementation of Gu, Quanquan, and Jiawei Han. "Clustered support vector machines."

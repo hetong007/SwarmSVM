@@ -1,7 +1,10 @@
 require(SwarmSVM)
 
 ## SVMGUIDE1
-data(svmguide1)
+local.file.name = tempfile()
+download.file("http://www.sfu.ca/~hetongh/data/svmguide1.RData",local.file.name)
+load(local.file.name)
+
 svmguide1.t = svmguide1[[2]]
 svmguide1 = svmguide1[[1]]
 csvm.obj = clusterSVM(x = svmguide1[,-1], y = svmguide1[,1],
@@ -47,37 +50,10 @@ csvm.obj = clusterSVM(x = svmguide1[,-1], y = svmguide1[,1], seed = 512,
 # Total Time: 12.127 secs
 # Accuracy Score: 0.81325 
 
-# Using RcppMLPACK
-# library(inline)
-# library(RcppMLPACK)
-# code <- '
-# arma::mat data = as<arma::mat>(test);
-# int clusters = as<int>(n);
-# arma::Col<size_t> assignments;
-# mlpack::kmeans::KMeans<> k;
-# k.Cluster(data, clusters, assignments);
-# return List::create(_["clusters"] = clusters,
-# _["result"] = assignments);
-# '
-# mlKmeans <- cxxfunction(signature(test="numeric", n ="integer"), code,
-#                         plugin="RcppMLPACK")
-# cluster.fun = function(x, centers, ...) {
-#   result = mlKmeans(t(as.matrix(x)),centers[1])
-#   result$cluster = result$result+1
-#   k = max(result$cluster)
-#   cluster.centers = matrix(0,k,ncol(x))
-#   for (i in 1:k) {
-#     index = which(result$cluster == i)
-#     cluster.centers[i,] = colMeans(x[index,,drop = FALSE])
-#   }
-#   result$centers = cluster.centers
-#   result$clusters = NULL
-#   result$result = NULL
-#   return(result)
-# }
-# csvm.obj = clusterSVM(x = svmguide1[,-1], y = svmguide1[,1], seed = 512,
-#                       cluster.FUN = cluster.fun, centers = 8, 
-#                       valid.x = svmguide1.t[,-1],valid.y = svmguide1.t[,1])
+# Using stats::kmeans
+csvm.obj = clusterSVM(x = svmguide1[,-1], y = svmguide1[,1], seed = 512,
+                      cluster.FUN = stats::kmeans, centers = 8, 
+                      valid.x = svmguide1.t[,-1],valid.y = svmguide1.t[,1])
 # KMeans::Cluster(): converged after 47 iterations.
 # exiting from: cluster.FUN(x, ...)
 # Time for Clustering: 20.174 secs
@@ -87,20 +63,6 @@ csvm.obj = clusterSVM(x = svmguide1[,-1], y = svmguide1[,1], seed = 512,
 # 
 # Total Time: 49.681 secs
 # Accuracy Score: 0.9614 
-
-# Only one cluster
-csvm.obj = clusterSVM(x = svmguide1[,-1], y = svmguide1[,1],
-                      centers = 1, iter.max = 1000, seed = 512,
-                      valid.x = svmguide1.t[,-1],valid.y = svmguide1.t[,1])
-# Time for Clustering: 0.002 secs
-# Time for Transforming: 0.005 secs
-# Time for Liblinear: 0.093 secs
-# Time for Validation: 0.008 secs
-# 
-# Total Time: 0.108 secs
-# Accuracy Score: 0.79125 
-
-
 
 ## IJCNN1
 # data(ijcnn1)
@@ -182,9 +144,9 @@ csvm.obj = clusterSVM(x = mnist49[,-1], y = mnist49[,1],
 # Accuracy Score: 0.9804119
 
 # O vs E
-# csvm.obj = clusterSVM(x = mnistoe[,-1], y = mnistoe[,1],
-#                       centers = 8, iter.max = 1000, seed = 512,
-#                       valid.x = mnistoe.t[,-1],valid.y = mnistoe.t[,1])
+csvm.obj = clusterSVM(x = mnistoe[,-1], y = mnistoe[,1],
+                      centers = 8, iter.max = 1000, seed = 512,
+                      valid.x = mnistoe.t[,-1],valid.y = mnistoe.t[,1])
 # Time for Clustering: 62.051 secs
 # Time for Transforming: 11.932 secs
 # Time for Liblinear: 13.056 secs
@@ -195,65 +157,65 @@ csvm.obj = clusterSVM(x = mnist49[,-1], y = mnist49[,1],
 
 
 
-# ### Replicated Experiments
-# rep.len = 10
-# 
-# score = rep(0,rep.len)
-# for (i in 1:rep.len) {
-#   csvm.obj = clusterSVM(x = svmguide1[,-1], y = svmguide1[,1],
-#                         centers = 8, iter.max = 1000, seed = i, verbose = 0,
-#                         valid.x = svmguide1.t[,-1],valid.y = svmguide1.t[,1])
-#   score[i] = csvm.obj$valid.score
-# }
-# cat(mean(score),'+',sd(score))
-# # 0.81355 + 0.009937863
-# 
-# score = rep(0,rep.len)
-# for (i in 1:rep.len) {
-#   csvm.obj = clusterSVM(x = ijcnn1[,-1], y = ijcnn1[,1],
-#                         centers = 8, iter.max = 1000, seed = i, verbose = 0,
-#                         valid.x = ijcnn1.t[,-1],valid.y = ijcnn1.t[,1])
-#   score[i] = csvm.obj$valid.score
-# }
-# cat(mean(score),'+',sd(score))
-# # 0.9446353 + 0.001768465
-# 
-# score = rep(0,rep.len)
-# for (i in 1:rep.len) {
-#   csvm.obj = clusterSVM(x = usps[,-1], y = usps[,1],
-#                         centers = 8, iter.max = 1000, seed = i, verbose = 0,
-#                         valid.x = usps.t[,-1],valid.y = usps.t[,1])
-#   score[i] = csvm.obj$valid.score
-# }
-# cat(mean(score),'+',sd(score))
-# # 0.9566019 + 0.0009232315
-# 
-# score = rep(0,rep.len)
-# for (i in 1:rep.len) {
-#   csvm.obj = clusterSVM(x = mnist38[,-1], y = mnist38[,1],
-#                         centers = 8, iter.max = 1000, seed = i, verbose = 0,
-#                         valid.x = mnist38.t[,-1],valid.y = mnist38.t[,1])
-#   score[i] = csvm.obj$valid.score
-# }
-# cat(mean(score),'+',sd(score))
-# # 0.9849294 + 0.001800931
-# 
-# score = rep(0,rep.len)
-# for (i in 1:rep.len) {
-#   csvm.obj = clusterSVM(x = mnist49[,-1], y = mnist49[,1],
-#                         centers = 8, iter.max = 1000, seed = i, verbose = 0,
-#                         valid.x = mnist49.t[,-1],valid.y = mnist49.t[,1])
-#   score[i] = csvm.obj$valid.score
-# }
-# cat(mean(score),'+',sd(score))
-# # 0.9805625 + 0.001441175
-# 
-# score = rep(0,rep.len)
-# for (i in 1:rep.len) {
-#   csvm.obj = clusterSVM(x = mnistoe[,-1], y = mnistoe[,1],
-#                         centers = 8, iter.max = 1000, seed = i, verbose = 0,
-#                         valid.x = mnistoe.t[,-1],valid.y = mnistoe.t[,1])
-#   score[i] = csvm.obj$valid.score
-# }
-# cat(mean(score),'+',sd(score))
-# # 0.96069 + 0.000953881
+### Replicated Experiments
+rep.len = 10
+
+score = rep(0,rep.len)
+for (i in 1:rep.len) {
+  csvm.obj = clusterSVM(x = svmguide1[,-1], y = svmguide1[,1],
+                        centers = 8, iter.max = 1000, seed = i, verbose = 0,
+                        valid.x = svmguide1.t[,-1],valid.y = svmguide1.t[,1])
+  score[i] = csvm.obj$valid.score
+}
+cat(mean(score),'+',sd(score))
+# 0.81355 + 0.009937863
+
+score = rep(0,rep.len)
+for (i in 1:rep.len) {
+  csvm.obj = clusterSVM(x = ijcnn1[,-1], y = ijcnn1[,1],
+                        centers = 8, iter.max = 1000, seed = i, verbose = 0,
+                        valid.x = ijcnn1.t[,-1],valid.y = ijcnn1.t[,1])
+  score[i] = csvm.obj$valid.score
+}
+cat(mean(score),'+',sd(score))
+# 0.9446353 + 0.001768465
+
+score = rep(0,rep.len)
+for (i in 1:rep.len) {
+  csvm.obj = clusterSVM(x = usps[,-1], y = usps[,1],
+                        centers = 8, iter.max = 1000, seed = i, verbose = 0,
+                        valid.x = usps.t[,-1],valid.y = usps.t[,1])
+  score[i] = csvm.obj$valid.score
+}
+cat(mean(score),'+',sd(score))
+# 0.9566019 + 0.0009232315
+
+score = rep(0,rep.len)
+for (i in 1:rep.len) {
+  csvm.obj = clusterSVM(x = mnist38[,-1], y = mnist38[,1],
+                        centers = 8, iter.max = 1000, seed = i, verbose = 0,
+                        valid.x = mnist38.t[,-1],valid.y = mnist38.t[,1])
+  score[i] = csvm.obj$valid.score
+}
+cat(mean(score),'+',sd(score))
+# 0.9849294 + 0.001800931
+
+score = rep(0,rep.len)
+for (i in 1:rep.len) {
+  csvm.obj = clusterSVM(x = mnist49[,-1], y = mnist49[,1],
+                        centers = 8, iter.max = 1000, seed = i, verbose = 0,
+                        valid.x = mnist49.t[,-1],valid.y = mnist49.t[,1])
+  score[i] = csvm.obj$valid.score
+}
+cat(mean(score),'+',sd(score))
+# 0.9805625 + 0.001441175
+
+score = rep(0,rep.len)
+for (i in 1:rep.len) {
+  csvm.obj = clusterSVM(x = mnistoe[,-1], y = mnistoe[,1],
+                        centers = 8, iter.max = 1000, seed = i, verbose = 0,
+                        valid.x = mnistoe.t[,-1],valid.y = mnistoe.t[,1])
+  score[i] = csvm.obj$valid.score
+}
+cat(mean(score),'+',sd(score))
+# 0.96069 + 0.000953881

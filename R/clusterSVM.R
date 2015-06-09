@@ -1,5 +1,3 @@
-setClass("clusterSVM")
-
 csvmTransform = function(x, lambda, cluster.label, sparse = TRUE) {
   n = nrow(x)
   m = ncol(x)
@@ -72,7 +70,7 @@ eucliDist= function(x, centers) {
 #'     See details in \code{LiblineaR}. 
 #' @param epsilon set tolerance of termination criterion for optimization. 
 #'     If NULL, the LIBLINEAR defaults are used, which are:
-#' @param svr_eps set tolerance margin (epsilon) in regression loss function of SVR. Not used for classification methods.
+#' @param svr.eps set tolerance margin (epsilon) in regression loss function of SVR. Not used for classification methods.
 #' @param bias if bias is \code{TRUE} (default), instances of data becomes [data; 1].
 #' @param wi a named vector of weights for the different classes, 
 #'     used for asymmetric class sizes. Not all factor levels have to be supplied (default weight: 1). 
@@ -82,9 +80,9 @@ eucliDist= function(x, centers) {
 #'     If set to 1 (default), the running time and validation score (if applicable) will be printed.
 #'     If set to 2, the running time ,validation score (if applicable) and the \code{LiblineaR} information will be printed.
 #' @param seed the random seed. Set it to \code{NULL} to randomize the model.
-#' @param cluster.FUN set to \code{kmeans} by default. Customized function is acceptable, 
+#' @param cluster.fun set to \code{kmeans} by default. Customized function is acceptable, 
 #'     as long as the resulting list contains two fields named as \code{cluster} and \code{centers}.
-#' @param ... additional parameters passing to \code{cluster.FUN}.
+#' @param ... additional parameters passing to \code{cluster.fun}.
 #' 
 #' @examples
 #' data(iris)
@@ -106,9 +104,9 @@ eucliDist= function(x, centers) {
 #' 
 clusterSVM = function(x, y, cluster.label = NULL, lambda = 1, sparse = TRUE, 
                       valid.x = NULL, valid.y = NULL, valid.metric = NULL,
-                      type = 1, cost = 1, epsilon = NULL, svr_eps = NULL, 
+                      type = 1, cost = 1, epsilon = NULL, svr.eps = NULL, 
                       bias = TRUE, wi = NULL, verbose = 1, seed = NULL,
-                      cluster.FUN = stats::kmeans, ...) {
+                      cluster.fun = cluster.fun.mlpack, ...) {
   
   if (lambda <= 0)
     stop("Invalid lambda. It must be greater than 0.")
@@ -118,7 +116,7 @@ clusterSVM = function(x, y, cluster.label = NULL, lambda = 1, sparse = TRUE,
   total.time.point = proc.time()
   time.point = proc.time()
   if (is.null(cluster.label)) {
-    cluster.result = cluster.FUN(x, ...)
+    cluster.result = cluster.fun(x, ...)
     if (is.null(cluster.result$cluster) || is.null(cluster.result$centers))
       stop("The result of the cluster function must be a list with
            two fields named as cluster and centers.")
@@ -137,23 +135,23 @@ clusterSVM = function(x, y, cluster.label = NULL, lambda = 1, sparse = TRUE,
       cluster.centers[i,] = colMeans(x[index,])
     }
   }
-  if (verbose>0)
-    cat('Time for Clustering:',(proc.time()-time.point)[3],'secs\n')
+  
+  clustering.time = (proc.time()-time.point)[3]
+  sendMsg('Time for Clustering: ',clustering.time, ' secs\n', verbose = verbose)
   time.point = proc.time()
   
   tilde.x = csvmTransform(x, lambda, cluster.label, sparse = sparse)
   
-  if (verbose>0)
-    cat('Time for Transforming:',(proc.time()-time.point)[3],'secs\n')
+  transform.time = (proc.time()-time.point)[3]
+  sendMsg('Time for Transforming: ',transform.time, ' secs\n', verbose = verbose)
   time.point = proc.time()
   
   svm.result = LiblineaR(data = tilde.x, target = y, type = type, cost = cost, 
-                         epsilon = epsilon, svr_eps = svr_eps, bias = bias,
+                         epsilon = epsilon, svr_eps = svr.eps, bias = bias,
                          wi = wi, cross = 0, verbose = (verbose>=2))
   
-  if (verbose>0) {
-    cat('Time for Liblinear:',(proc.time()-time.point)[3],'secs\n')
-  }
+  liblinear.time = (proc.time()-time.point)[3]
+  sendMsg('Time for Liblinear: ', liblinear.time, ' secs\n', verbose = verbose)
   
   cluster.svm.result = list(svm = svm.result, 
                             lambda = lambda,
@@ -184,18 +182,25 @@ clusterSVM = function(x, y, cluster.label = NULL, lambda = 1, sparse = TRUE,
       cluster.svm.result$valid.metric.name = valid.result$name
     }
     
-    if (verbose>0)
-      cat('Time for Validation:',(proc.time()-time.point)[3],'secs\n')
+    validation.time = (proc.time()-time.point)[3]
+    sendMsg('Time for Validation: ', validation.time, ' secs\n', verbose = verbose)
   }
   
-  if (verbose>0) {
-    cat('\n')
-    cat('Total Time:',(proc.time()-total.time.point)[3],'secs\n')
-    if (!is.null(cluster.svm.result$valid.score))
-      cat(cluster.svm.result$valid.metric.name, 'Score:', cluster.svm.result$valid.score, '\n')
-  }
+  total.time = (proc.time()-total.time.point)[3]
+  sendMsg('\nTotal Time: ', total.time, ' secs\n', verbose = verbose)
+  if (!is.null(cluster.svm.result$valid.score))
+    sendMsg(cluster.svm.result$valid.metric.name, ' Score: ', 
+            cluster.svm.result$valid.score, ' \n', verbose = verbose)
   
-  # cluster.svm.result = structure(cluster.svm.result, class = 'clusterSVM')
+  time.record = list()
+  time.record$clustering.time = clustering.time
+  time.record$transform.time = transform.time
+  time.record$liblinear.time = liblinear.time
+  time.record$validation.time = validation.time
+  time.record$total.time = total.time
+  
+  cluster.svm.result$time = time.record
+
   return(cluster.svm.result)
 }
 
@@ -208,10 +213,11 @@ clusterSVM = function(x, y, cluster.label = NULL, lambda = 1, sparse = TRUE,
 #' @param newdata An n x p matrix containing the new input data. Could be a matrix or a sparse matrix object.
 #' @param ... other parameters passing to \code{predict.LiblineaR}
 #' 
+#' @method predict clusterSVM
+#' 
 #' @export
 #' 
-setMethod("predict", signature = "clusterSVM",
-          definition = function(object, newdata, ...) {
+predict.clusterSVM = function(object, newdata, ...) {
   
   if (class(object)!='clusterSVM')
     stop('Please predict with the model from clusterSVM.')
@@ -234,4 +240,4 @@ setMethod("predict", signature = "clusterSVM",
   # Make prediction
   preds = predict(object$svm, tilde.newdata, ...)
   return(preds)
-})
+}

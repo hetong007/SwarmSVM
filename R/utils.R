@@ -1,42 +1,29 @@
 #' @importClassesFrom SparseM matrix.csr
 #' @importFrom kernlab kkmeans
-#' @importFrom stats kmeans
+#' @importFrom RcppMLPACK mlKmeans
 #' @import Matrix
 #' @import LiblineaR
 #' @import e1071
 #' @import methods
 
-read.libsvm = function( filename, sparse = TRUE, dims = NULL) {
-  content = readLines( filename )
-  num_lines = length( content )
-  space_ind = regexpr('\\s+',content)
-  tomakemat = cbind(1:num_lines, -1, substr(content,1,space_ind-1))
-  
-  # loop over lines
-  makemat = rbind(tomakemat,
-                  do.call(rbind, 
-                          lapply(1:num_lines, function(i){
-                            # split by spaces, remove lines
-                            line = as.vector( strsplit( content[i], ' ' )[[1]])
-                            cbind(i, t(simplify2array(strsplit(line[-1],
-                                                               ':'))))   
-                          })))
-  class(makemat) = "numeric"
-  
-  if (!is.null(dims)) {
-    yx = sparseMatrix(i = makemat[,1], 
-                      j = makemat[,2]+2, 
-                      x = makemat[,3],
-                      dims = dims)
-  } else {
-    yx = sparseMatrix(i = makemat[,1], 
-                      j = makemat[,2]+2, 
-                      x = makemat[,3])
+cluster.fun.mlpack = function(x, centers, ...) {
+  result = mlKmeans(t(as.matrix(x)),centers[1])
+  result$cluster = result$result+1
+  k = max(result$cluster)
+  cluster.centers = matrix(0,k,ncol(x))
+  for (i in 1:k) {
+    index = which(result$cluster == i)
+    cluster.centers[i,] = colMeans(x[index,,drop = FALSE])
   }
-  
-  if (!sparse)
-    yx = as(yx,'matrix')
-  return( yx )
+  result$centers = cluster.centers
+  result$clusters = NULL
+  result$result = NULL
+  return(result)
+}
+
+sendMsg = function(..., verbose) {
+  if (verbose)
+    message(...)
 }
 
 #' svmguide1
