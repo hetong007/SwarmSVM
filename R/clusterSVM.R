@@ -1,3 +1,13 @@
+#' Data Transformation function for Clustered Support Vector Machine
+#' 
+#' Transform a data matrix according to the kmeans clustering result based on 
+#'   Gu, Quanquan, and Jiawei Han. "Clustered support vector machines."
+#' 
+#' @param x The data matrix, could be a \code{matrix} or \code{dgCMatrix} object.
+#' @param lambda The parameter from the algorithm
+#' @param cluster.label The clustering label starting from 1. Its length must equal to the number of rows in \code{x}
+#' @param sparse Logical argument indicating whether the output should be a sparse matrix or not
+#' 
 csvmTransform = function(x, lambda, cluster.label, sparse = TRUE) {
   n = nrow(x)
   m = ncol(x)
@@ -108,8 +118,7 @@ clusterSVM = function(x, y, cluster.label = NULL, lambda = 1, sparse = TRUE,
                       bias = TRUE, wi = NULL, verbose = 1, seed = NULL,
                       cluster.fun = cluster.fun.mlpack, ...) {
   
-  if (lambda <= 0)
-    stop("Invalid lambda. It must be greater than 0.")
+  assertInt(lambda, lower = 0)
   if (!is.null(seed))
     set.seed(seed)
   
@@ -219,8 +228,7 @@ clusterSVM = function(x, y, cluster.label = NULL, lambda = 1, sparse = TRUE,
 #' 
 predict.clusterSVM = function(object, newdata, ...) {
   
-  if (class(object)!='clusterSVM')
-    stop('Please predict with the model from clusterSVM.')
+  assertClass(object, 'clusterSVM')
   
   if (missing(newdata))
     return(fitted(object$svm))

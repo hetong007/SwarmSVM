@@ -5,7 +5,17 @@
 #' @import LiblineaR
 #' @import e1071
 #' @import methods
+#' @import checkmate
+NULL
 
+#' Kmeans Clustering from RcppMLPACK
+#' 
+#' The Kmeans algorithm from \code{RcppMLPACK}.
+#' 
+#' @param x The input data for the clustering algorithm.
+#' @param centers A number indicating the number of clustering centers.
+#' @param ... arguments for future use.
+#' 
 cluster.fun.mlpack = function(x, centers, ...) {
   result = mlKmeans(t(as.matrix(x)),centers[1])
   result$cluster = result$result+1
