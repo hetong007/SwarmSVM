@@ -2,11 +2,28 @@
 #' @importFrom kernlab kkmeans
 #' @importFrom RcppMLPACK mlKmeans
 #' @import Matrix
+#' @import SparseM
 #' @import LiblineaR
 #' @import e1071
 #' @import methods
 #' @import checkmate
+#' @importFrom BBmisc suppressAll
+#' @useDynLib SwarmSVM
 NULL
+
+#' Euclidean Distance calculation
+#' 
+#' @param x the data matrix
+#' @param centers the matrix of centers
+#' 
+eucliDist= function(x, centers) {
+  if (nrow(centers)>1) {
+    result = apply(centers, 1, function(C) colSums( (t(x)-C)^2 ))
+  } else {
+    result = colSums((t(x)-as.vector(centers))^2)
+  }
+  return(result)
+}
 
 #' Kmeans Clustering from RcppMLPACK
 #' 
@@ -17,17 +34,31 @@ NULL
 #' @param ... arguments for future use.
 #' 
 cluster.fun.mlpack = function(x, centers, ...) {
-  result = mlKmeans(t(as.matrix(x)),centers[1])
-  result$cluster = result$result+1
-  k = max(result$cluster)
-  cluster.centers = matrix(0,k,ncol(x))
-  for (i in 1:k) {
-    index = which(result$cluster == i)
-    cluster.centers[i,] = colMeans(x[index,,drop = FALSE])
+  if (is.matrix(centers)) {
+    result = list()
+    result$centers = centers
+    k = nrow(centers)
+    if (k==1) {
+      result$cluster = rep(1,nrow(x))
+    } else {
+      dist = eucliDist(x, centers)
+      result$cluster = max.col(-dist)
+    }
+  } else {
+    BBmisc::suppressAll({
+      result = mlKmeans(t(as.matrix(x)),centers[1])
+    })
+    result$cluster = result$result+1
+    k = max(result$cluster)
+    cluster.centers = matrix(0,k,ncol(x))
+    for (i in 1:k) {
+      index = which(result$cluster == i)
+      cluster.centers[i,] = colMeans(x[index,,drop = FALSE])
+    }
+    result$centers = cluster.centers
+    result$clusters = NULL
+    result$result = NULL
   }
-  result$centers = cluster.centers
-  result$clusters = NULL
-  result$result = NULL
   return(result)
 }
 

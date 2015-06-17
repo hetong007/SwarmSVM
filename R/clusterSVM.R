@@ -48,15 +48,6 @@ csvmTransform = function(x, lambda, cluster.label, sparse = TRUE) {
   return(tilde.x)
 }
 
-eucliDist= function(x, centers) {
-  if (nrow(centers)>1) {
-    result = apply(centers, 1, function(C) colSums( (t(x)-C)^2 ))
-  } else {
-    result = colSums((t(x)-as.vector(centers))^2)
-  }
-  return(result)
-}
-
 #' Clustered Support Vector Machine
 #' 
 #' Implementation of Gu, Quanquan, and Jiawei Han. "Clustered support vector machines."
@@ -166,7 +157,8 @@ clusterSVM = function(x, y, cluster.label = NULL, lambda = 1, sparse = TRUE,
                             lambda = lambda,
                             sparse = sparse,
                             label = cluster.label, 
-                            centers = cluster.centers)
+                            centers = cluster.centers,
+                            cluster.fun = cluster.fun)
   cluster.svm.result = structure(cluster.svm.result, class = 'clusterSVM')
   
   if (!is.null(valid.x)) {
@@ -234,16 +226,10 @@ predict.clusterSVM = function(object, newdata, ...) {
     return(fitted(object$svm))
   
   # Assign label
-  k = nrow(object$centers)
-  if (k==1) {
-    new.label = rep(1,nrow(newdata))
-  } else {
-    dist = eucliDist(newdata, object$centers)
-    new.label = max.col(-dist)
-  }
+  new.result = object$cluster.fun(newdata, object$centers)
   
   # Transformation
-  tilde.newdata = csvmTransform(newdata, object$lambda, new.label, object$sparse)
+  tilde.newdata = csvmTransform(newdata, object$lambda, new.result$cluster, object$sparse)
   
   # Make prediction
   preds = predict(object$svm, tilde.newdata, ...)

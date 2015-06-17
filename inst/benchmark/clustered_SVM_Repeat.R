@@ -243,22 +243,22 @@ repeatSVM(svmguide1, svmguide1.t, rep.len)
 # Average Error Standard Deviation       Average Time Standard Deviation         Best Gamma          Best Cost 
 # 8.7875e-01         0.0000e+00         8.5260e-01         2.5906e-03         1.0000e+01         1.0000e+02 
 
-repeatLiblineaR(ijcnn1, ijcnn1.t, rep.len)
-# Average Error Standard Deviation       Average Time Standard Deviation          Best Cost 
-# 0.9210532          0.0008342         50.8578000          0.3590357        100.0000000 
+repeatSVM(ijcnn1, ijcnn1.t, rep.len)
+# Average Error Standard Deviation       Average Time Standard Deviation         Best Gamma          Best Cost 
+# 0.9903164          0.0000000        131.4755000          2.2816740         10.0000000         10.0000000 
 
-repeatLiblineaR(usps, usps.t, rep.len)
-# Average Error Standard Deviation       Average Time Standard Deviation          Best Cost 
-# 0.9377180          0.0000000          2.3045000          0.3240423         10.0000000 
+repeatSVM(usps, usps.t, rep.len)
+# Average Error Standard Deviation       Average Time Standard Deviation         Best Gamma          Best Cost 
+# 0.9706029          0.0000000          9.3162000          0.0553530          1.0000000        100.0000000  
 
-repeatLiblineaR(mnist38, mnist38.t, rep.len)
-# Average Error Standard Deviation       Average Time Standard Deviation          Best Cost 
-# 0.7561492          0.0002125          0.9821000          0.0571654          1.0000000 
+repeatSVM(mnist38, mnist38.t, rep.len)
+# Average Error Standard Deviation       Average Time Standard Deviation         Best Gamma          Best Cost 
+# 0.9949597          0.0000000         77.8332000          0.3907411          1.0000000         10.0000000
 
-repeatLiblineaR(mnist49, mnist49.t, rep.len)
-# Average Error Standard Deviation       Average Time Standard Deviation          Best Cost 
-# 0.9432446          0.0000000          0.9345000          0.0519578          1.0000000 
+repeatSVM(mnist49, mnist49.t, rep.len)
+# Average Error Standard Deviation       Average Time Standard Deviation         Best Gamma          Best Cost 
+# 0.9929684          0.0000000         57.6431000          0.1407752          1.0000000        100.0000000 
 
-repeatLiblineaR(mnistoe, mnistoe.t, rep.len)
+repeatSVM(mnistoe, mnistoe.t, rep.len)
 # Average Error Standard Deviation       Average Time Standard Deviation          Best Cost 
 # 0.9021700          0.0000823         27.5896000          2.8831490         10.0000000 

@@ -15,6 +15,7 @@ Imports:
     SparseM,
     kernlab,
     methods,
-    checkmate
-License: Apache License (== 2.0) | file LICENSE
+    checkmate,
+    BBmisc
+License: GPL-2
 Suggests: testthat
