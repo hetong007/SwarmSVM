@@ -2,7 +2,6 @@
 #' @importFrom kernlab kkmeans
 #' @importFrom RcppMLPACK mlKmeans
 #' @import Matrix
-#' @import SparseM
 #' @import LiblineaR
 #' @import e1071
 #' @import methods

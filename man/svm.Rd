@@ -2,9 +2,21 @@
 % Please edit documentation in R/svm.R
 \name{svm}
 \alias{svm}
+\alias{svm.default}
+\alias{svm.formula}
 \title{Support Vector Machines}
 \usage{
 svm(x, ...)
+
+\method{svm}{formula}(formula, data = NULL, ..., subset,
+  na.action = na.omit, scale = TRUE)
+
+\method{svm}{default}(x, y = NULL, scale = TRUE, type = NULL,
+  kernel = "radial", degree = 3, gamma = if (is.vector(x)) 1 else
+  1/ncol(x), coef0 = 0, cost = 1, nu = 0.5, class.weights = NULL,
+  cachesize = 40, tolerance = 0.001, epsilon = 0.1, shrinking = TRUE,
+  cross = 0, probability = FALSE, fitted = TRUE, alpha = NULL, ...,
+  subset, na.action = na.omit)
 }
 \arguments{
 \item{x}{a data matrix, a vector, or a sparse matrix (object of class \code{Matrix}
@@ -15,14 +27,23 @@ or of class \code{simple_triplet_matrix} provided by the \code{slam package}).}
 
 \item{formula}{a symbolic description of the model to be fit.}
 
-\item{data}{an optional data frame containing the variables in the model. By default the variables are taken from the environment which ‘svm’ is called from.}
+\item{data}{an optional data frame containing the variables in the model. By default the variables are taken from the environment which 'svm' is called from.}
 
-\item{y}{a response vector with one label for each row/component of x. Can be either a factor (for classification tasks) or a numeric vector (for regression).}
+\item{subset}{An index vector specifying the cases to be used in the
+training sample.  (NOTE: If given, this argument must be named.)}
+
+\item{na.action}{A function to specify the action to be taken if \code{NA}s are
+    found. The default action is \code{na.omit}, which leads to rejection of cases
+    with missing values on any required variable. An alternative
+    is \code{na.fail}, which causes an error if \code{NA} cases
+    are found. (NOTE: If given, this argument must be named.)}
 
 \item{scale}{A logical vector indicating the variables to be scaled.
 If scale is of length 1, the value is recycled as many times as needed.
 Per default, data are scaled internally (both x and y variables) to zero mean and unit variance.
 The center and scale values are returned and used for later predictions.}
+
+\item{y}{a response vector with one label for each row/component of x. Can be either a factor (for classification tasks) or a numeric vector (for regression).}
 
 \item{type}{svm can be used as a classification machine.
 The default setting for type is C-classification,
@@ -67,26 +88,21 @@ validation on the training data is performed to assess the quality
 of the model: the accuracy rate for classification and the Mean
 Squared Error for regression}
 
+\item{probability}{logical indicating whether the model should
+allow for probability predictions.}
+
 \item{fitted}{logical indicating whether the fitted values should be computed
 and included in the model or not (default: \code{TRUE})}
 
 \item{alpha}{Initial values for the coefficients (default: \code{NULL}).
 A numerical vector for binary classification or a nx(k-1) matrix for a k-class-classification problem.}
-
-\item{probability}{logical indicating whether the model should
-allow for probability predictions.}
-
-\item{subset}{An index vector specifying the cases to be used in the
-training sample.  (NOTE: If given, this argument must be named.)}
-
-\item{na.action}{A function to specify the action to be taken if \code{NA}s are
-    found. The default action is \code{na.omit}, which leads to rejection of cases
-    with missing values on any required variable. An alternative
-    is \code{na.fail}, which causes an error if \code{NA} cases
-    are found. (NOTE: If given, this argument must be named.)}
 }
 \description{
 svm is used to train a support vector machine. It can be used to carry out general regression and classification (of nu and epsilon-type), as well as density-estimation. A formula interface is provided.
+
+
+
+
 }
 \details{
 For multiclass-classification with k levels, k>2, \code{libsvm} uses the

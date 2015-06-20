@@ -3,7 +3,7 @@
 #' svm is used to train a support vector machine. It can be used to carry out general regression and classification (of nu and epsilon-type), as well as density-estimation. A formula interface is provided. 
 #' 
 #' @param formula a symbolic description of the model to be fit.
-#' @param data an optional data frame containing the variables in the model. By default the variables are taken from the environment which ‘svm’ is called from.
+#' @param data an optional data frame containing the variables in the model. By default the variables are taken from the environment which 'svm' is called from.
 #' @param x a data matrix, a vector, or a sparse matrix (object of class \code{Matrix} 
 #'     provided by the \code{Matrix} package, or of class \code{matrix.csr} provided by the \code{SparseM} package, 
 #'     or of class \code{simple_triplet_matrix} provided by the \code{slam package}).
@@ -116,17 +116,18 @@
 #' 
 #' model2 = svm(Species ~ ., data = iris, alpha = new.alpha)
 #' 
-#' 
+#' @rdname svm
 #' 
 #' 
 #' @export
 #' 
-
 svm <-
 function (x, ...)
     UseMethod ("svm")
-
+#'
+#' @rdname svm
 #' @export
+#' 
 svm.formula <-
 function (formula, data = NULL, ..., subset, na.action = na.omit, scale = TRUE)
 {
@@ -166,7 +167,10 @@ function (formula, data = NULL, ..., subset, na.action = na.omit, scale = TRUE)
     return (ret)
 }
 
-#' export
+#' 
+#' @rdname svm
+#' @export
+#' 
 svm.default <-
 function (x,
           y           = NULL,
