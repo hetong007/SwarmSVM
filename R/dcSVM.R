@@ -87,7 +87,7 @@ predict.dcSVM = function(object, newdata, ...) {
     return(fitted(object$svm))
   
   # Assign label
-  if (early) {
+  if (object$early) {
     new.result = object$cluster.fun(newdata, object$centers)
     k = max(new.result)
     preds = rep(0, nrow(newdata))
