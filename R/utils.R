@@ -1,9 +1,10 @@
 #' @importClassesFrom SparseM matrix.csr
+#' @importFrom SparseM t
 #' @importFrom kernlab kkmeans
+#' @importFrom kernlab kernelMatrix
 #' @importFrom RcppMLPACK mlKmeans
 #' @import Matrix
 #' @import LiblineaR
-#' @import e1071
 #' @import methods
 #' @import checkmate
 #' @importFrom BBmisc suppressAll

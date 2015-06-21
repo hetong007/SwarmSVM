@@ -1,5 +1,36 @@
-dcSVM = function(x, y, k, m, C, kernel, max.levels, early, ...) {
+#' Divide-and-Conquer kernel SVM (DC-SVM)
+#' 
+#' Implementation of Divide-and-Conquer kernel SVM (DC-SVM) by Cho-Jui Hsieh, Si Si, and Inderjit S. Dhillon 
+#' 
+#' @param x the nxp training data matrix. Could be a matrix or a sparse matrix object.
+#' @param y a response vector for prediction tasks with one value for each of the n rows of \code{x}. 
+#'     For classification, the values correspond to class labels and can be a 1xn matrix, 
+#'     a simple vector or a factor. For regression, the values correspond to the values to predict, 
+#'     and can be a 1xn matrix or a simple vector.
+#' @param k the number of sub-problems divided
+#' @param m the number of sample for kernel kmeans
+#' @param kernel the kernel type: 0 for linear, 1 for polynomial, 2 for gaussian
+#' @param max.levels the maximum number of level
+#' @param early whether use early prediction
+#' @param seed the random seed. Set it to \code{NULL} to randomize the model.
+#' @param ... other parameters passed to \code{e1071::svm}
+#' 
+#' @examples
+#' data(svmguide1)
+#' svmguide1.t = as.matrix(svmguide1[[2]])
+#' svmguide1 = as.matrix(svmguide1[[1]])
+#' dcsvm.model = dcSVM(x = svmguide1[,-1], y = svmguide1[,1], k=2, max.levels=2,
+#'                     kernel=2,early = FALSE, m =100)
+#' preds = predict(dcsvm.model, svmguide1.t[,-1])#' 
+#' 
+#' @export
+#' 
+dcSVM = function(x, y, k, m, kernel = 3, max.levels, early, 
+                 seed = 0, ...) {
+  if (!is.null(seed))
+    set.seed(seed)
   n = nrow(x)
+  x = as.matrix(x)
   support = rep(0,n)
   num.lvls = length(levels(as.factor(y)))
   alpha = matrix(0,n,num.lvls-1)
@@ -26,19 +57,25 @@ dcSVM = function(x, y, k, m, C, kernel, max.levels, early, ...) {
     else
       ind = sample(support,m)
     
-    kkmeans.res = kernlab::kkmeans(x[ind,], centers = kl, kpar = kpar,
-                                   kernel = kernlab.kernel)
+    if (length(kpar)>0) {
+      kkmeans.res = kernlab::kkmeans(as.matrix(x[ind,]), centers = kl, kpar = kpar,
+                                     kernel = kernlab.kernel)
+    } else {
+      kkmeans.res = kernlab::kkmeans(as.matrix(x[ind,]), centers = kl,
+                                     kernel = kernlab.kernel)
+    }
     
-    # Very Slow process, looking for faster prediction version
     kern.fun = kkmeans.res@kernelf@.Data
     center.mat = kkmeans.res@centers
-    cluster.label = rep(0,n)
-    for (i in 1:n) {
-      dist.vec= rep(0,kl)
-      for (j in 1:kl) {
-        dist.vec[j,] = kern.fun(x[i,],center.mat[j,])
-      }
-      cluster.label[i] = which.min(dist.vec)
+    kern.mat = kernlab::kernelMatrix(kern.fun, x, center.mat)
+    if (kernel==3) {
+      cluster.label = max.col(kern.mat@.Data)
+    } else {
+      kern.c = diag(kernelMatrix(kern.fun,
+                                 kkmeans.res@centers,
+                                 kkmeans.res@centers))
+      dist.mat = t(kern.c-2*t(kern.mat))
+      cluster.label = max.col(-dist.mat)
     }
     
     # Train svm for each cluster
@@ -47,24 +84,28 @@ dcSVM = function(x, y, k, m, C, kernel, max.levels, early, ...) {
     svm.models = list()
     for (clst in 1:kl) {
       ind = which(cluster.label == clst)
-      # train the svm with given support vectors
-      if (lvl == max.levels)
-        svm.model = svm(x = x[ind,], y = y[ind], kernel = svm.kernel, ...)
-      else 
-        svm.model = svm(x = x[ind,], y = y[ind], kernel = svm.kernel, 
-                        alpha = alpha[ind,], ...)
-      svm.models[[clst]] = svm.model
-      sv.ind = ind[svm.model$index]
-      new.support[sv.ind,] = TRUE
-      new.alpha[sv.ind,] = svm.model$coefs
+      if (length(ind)>1) {
+        # train the svm with given support vectors
+        if (lvl == max.levels)
+          svm.model = svm(x = x[ind,], y = y[ind], kernel = svm.kernel, ...)
+        else 
+          svm.model = svm(x = x[ind,], y = y[ind], kernel = svm.kernel, 
+                          alpha = alpha[ind,], ...)
+        svm.models[[clst]] = svm.model
+        sv.ind = ind[svm.model$index]
+        new.support[sv.ind] = TRUE
+        new.alpha[sv.ind,] = svm.model$coefs
+      }
     }
     support = which(new.support)
     alpha = new.alpha
   }
   if (!early){
     # Refine
-    svm.models = svm(x = x[support,], y = y[support], kernel = svm.kernel, 
-                     alpha = alpha[support,], ...)
+    ind = support
+    svm.models = svm(x = x[ind,], y = y[ind], kernel = svm.kernel, 
+                     alpha = alpha[ind,], ...)
+    support = ind[svm.model$index]
     alpha[support,] = svm.model$coefs
     
     # Final
@@ -79,12 +120,28 @@ dcSVM = function(x, y, k, m, C, kernel, max.levels, early, ...) {
   return(result)
 }
 
+#' 
+#' Predictions with Divide-Conquer Support Vector Machines
+#' 
+#' The function applies a model produced by the 
+#'  \code{dcSVM} function to every row of a data matrix and returns the model predictions.
+#' 
+#' @param object Object of class "dcSVM", created by \code{dcSVM}.
+#' @param newdata An n x p matrix containing the new input data. Could be a matrix or a sparse matrix object.
+#' @param ... other parameters passing to \code{predict.svm}
+#' 
+#' @method predict dcSVM
+#' 
+#' @export
+#' 
 predict.dcSVM = function(object, newdata, ...) {
   
-  assertClass(object, 'dcSVM')
+  checkmate::assertClass(object, 'dcSVM')
   
   if (missing(newdata))
     return(fitted(object$svm))
+  
+  newdata = as.matrix(newdata)
   
   # Assign label
   if (object$early) {
