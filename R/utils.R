@@ -67,6 +67,23 @@ sendMsg = function(..., verbose) {
     message(...)
 }
 
+#' Predict function for kernel kmeans
+#' 
+#' @param kkmeans.res The result object from \code{kernlab::kkmeans}
+#' @param x The data to make prediction
+#' 
+kern.predict = function(kkmeans.res, x) {
+  kern.fun = kkmeans.res@kernelf@.Data
+  center.mat = kkmeans.res@centers
+  kern.mat = kernlab::kernelMatrix(kern.fun, x, center.mat)
+  kern.c = diag(kernelMatrix(kern.fun,
+                             kkmeans.res@centers,
+                             kkmeans.res@centers))
+  dist.mat = t(kern.c-2*t(kern.mat))
+  result = max.col(-dist.mat)
+  return(result)
+}
+
 #' svmguide1
 #' 
 #' An astroparticle application from Jan Conrad of Uppsala University, Sweden. 

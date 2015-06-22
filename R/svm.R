@@ -234,8 +234,12 @@ function (x,
         else if (is.factor(y)) "C-classification"
         else "eps-regression"
 
+    if (is.factor(y) && length(levels(y))==1)
+        type = "one-classification"
+    
     type <- pmatch(type, c("C-classification",
-                           "nu-classification"), 99) - 1
+                           "nu-classification",
+                           "one-classification"), 99) - 1
 
     if (type > 10) stop("wrong type specification!")
 

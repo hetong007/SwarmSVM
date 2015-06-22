@@ -8,6 +8,7 @@ Description: This pacakge contains three ensemble learning algorithms based on S
 Depends: 
     R (>= 3.0.2)
 Imports: 
+    e1071,
     LiblineaR,
     RcppMLPACK,
     Matrix,

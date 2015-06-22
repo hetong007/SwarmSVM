@@ -1,6 +1,10 @@
 source('utils.R')
 require(Matrix)
 
+########################
+# For Clustered SVM
+########################
+
 # svmguide1
 download.file('http://www.csie.ntu.edu.tw/%7Ecjlin/libsvmtools/datasets/binary/svmguide1',
               'svmguide1')
@@ -66,3 +70,51 @@ mnistoe.t[,1] = as.numeric(as.vector(mnist.t[,1])%%2==0)
 
 mnist = list(mnist38,mnist38.t,mnist49,mnist49.t,mnistoe,mnistoe.t)
 save(mnist, file='mnist.RData',compress = 'xz')
+
+
+########################
+# For DC SVM
+########################
+
+# ijcnn1
+download.file('http://www.csie.ntu.edu.tw/%7Ecjlin/libsvmtools/datasets/binary/ijcnn1.bz2',
+              'ijcnn1.bz2')
+download.file('http://www.csie.ntu.edu.tw/%7Ecjlin/libsvmtools/datasets/binary/ijcnn1.t.bz2',
+              'ijcnn1.t.bz2')
+ijcnn1 = read.libsvm(bzfile('ijcnn1.bz2'))
+ijcnn1.t = read.libsvm(bzfile('ijcnn1.t.bz2'))
+ijcnn1[,-1] = rownorm(ijcnn1[,-1])
+ijcnn1.t[,-1] = rownorm(ijcnn1.t[,-1])
+ijcnn1 = list(ijcnn1,ijcnn1.t)
+save(ijcnn1,file='ijcnn1.l1.RData',compress = 'xz')
+
+# covtype.binary
+download.file('http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary/covtype.libsvm.binary.scale.bz2',
+              'covtype.libsvm.binary.scale.bz2')
+covtype = read.libsvm(bzfile('covtype.libsvm.binary.scale.bz2'))
+set.seed(1024)
+n = nrow(covtype)
+ind = sample(n,n*0.2)
+covtype.t = covtype[ind,]
+covtype = covtype[-ind,]
+covtype = list(covtype,covtype.t)
+save(covtype,file = 'covtype.RData',compress = 'xz')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

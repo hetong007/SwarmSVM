@@ -4,7 +4,8 @@
 \alias{dcSVM}
 \title{Divide-and-Conquer kernel SVM (DC-SVM)}
 \usage{
-dcSVM(x, y, k, m, kernel = 3, max.levels, early, seed = 0, ...)
+dcSVM(x, y, k = 4, m, kernel = 3, max.levels, early = 0, seed = NULL,
+  ...)
 }
 \arguments{
 \item{x}{the nxp training data matrix. Could be a matrix or a sparse matrix object.}
@@ -35,8 +36,9 @@ Implementation of Divide-and-Conquer kernel SVM (DC-SVM) by Cho-Jui Hsieh, Si Si
 data(svmguide1)
 svmguide1.t = as.matrix(svmguide1[[2]])
 svmguide1 = as.matrix(svmguide1[[1]])
-dcsvm.model = dcSVM(x = svmguide1[,-1], y = svmguide1[,1], k=2, max.levels=2,
-                    kernel=2,early = FALSE, m =100)
+dcsvm.model = dcSVM(x = svmguide1[,-1], y = svmguide1[,1],
+                    k = 2, max.levels = 2,
+                    kernel = 2,early = FALSE, m = 100)
 preds = predict(dcsvm.model, svmguide1.t[,-1])#'
 }
 

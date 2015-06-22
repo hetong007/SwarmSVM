@@ -37,3 +37,9 @@ rowl2norm = function(x) {
   return(new.x)
 }
 
+rownorm = function(x) {
+  rs = 1/rowSums(x)
+  new.x = Diagonal(x=rs) %*% x
+  return(new.x)
+}
+

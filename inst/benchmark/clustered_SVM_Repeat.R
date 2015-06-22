@@ -260,5 +260,6 @@ repeatSVM(mnist49, mnist49.t, rep.len)
 # 0.9929684          0.0000000         57.6431000          0.1407752          1.0000000        100.0000000 
 
 repeatSVM(mnistoe, mnistoe.t, rep.len)
+# Not finished yet
 # Average Error Standard Deviation       Average Time Standard Deviation          Best Cost 
 # 0.9021700          0.0000823         27.5896000          2.8831490         10.0000000 

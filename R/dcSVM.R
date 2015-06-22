@@ -19,14 +19,15 @@
 #' data(svmguide1)
 #' svmguide1.t = as.matrix(svmguide1[[2]])
 #' svmguide1 = as.matrix(svmguide1[[1]])
-#' dcsvm.model = dcSVM(x = svmguide1[,-1], y = svmguide1[,1], k=2, max.levels=2,
-#'                     kernel=2,early = FALSE, m =100)
+#' dcsvm.model = dcSVM(x = svmguide1[,-1], y = svmguide1[,1], 
+#'                     k = 2, max.levels = 2,
+#'                     kernel = 2,early = FALSE, m = 100)
 #' preds = predict(dcsvm.model, svmguide1.t[,-1])#' 
 #' 
 #' @export
 #' 
-dcSVM = function(x, y, k, m, kernel = 3, max.levels, early, 
-                 seed = 0, ...) {
+dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0, 
+                 seed = NULL, ...) {
   if (!is.null(seed))
     set.seed(seed)
   n = nrow(x)
@@ -65,18 +66,7 @@ dcSVM = function(x, y, k, m, kernel = 3, max.levels, early,
                                      kernel = kernlab.kernel)
     }
     
-    kern.fun = kkmeans.res@kernelf@.Data
-    center.mat = kkmeans.res@centers
-    kern.mat = kernlab::kernelMatrix(kern.fun, x, center.mat)
-    if (kernel==3) {
-      cluster.label = max.col(kern.mat@.Data)
-    } else {
-      kern.c = diag(kernelMatrix(kern.fun,
-                                 kkmeans.res@centers,
-                                 kkmeans.res@centers))
-      dist.mat = t(kern.c-2*t(kern.mat))
-      cluster.label = max.col(-dist.mat)
-    }
+    cluster.label = kern.predict(kkmeans.res, x)
     
     # Train svm for each cluster
     new.alpha = matrix(0,n,num.lvls-1)
@@ -99,8 +89,10 @@ dcSVM = function(x, y, k, m, kernel = 3, max.levels, early,
     }
     support = which(new.support)
     alpha = new.alpha
+    if (early<=lvl)
+      break
   }
-  if (!early){
+  if (early == 0){
     # Refine
     ind = support
     svm.models = svm(x = x[ind,], y = y[ind], kernel = svm.kernel, 
@@ -113,8 +105,7 @@ dcSVM = function(x, y, k, m, kernel = 3, max.levels, early,
   }
   # Result structure
   result = list(svm = svm.models,
-                cluster.fun = kern.fun,
-                centers = center.mat,
+                kkmeans.res = kkmeans.res,
                 early = early)
   result = structure(result, class = "dcSVM")
   return(result)
@@ -144,8 +135,8 @@ predict.dcSVM = function(object, newdata, ...) {
   newdata = as.matrix(newdata)
   
   # Assign label
-  if (object$early) {
-    new.result = object$cluster.fun(newdata, object$centers)
+  if (object$early > 0) {
+    new.result = kern.predict(object$kkmeans.res,newdata)
     k = max(new.result)
     preds = rep(0, nrow(newdata))
     for (i in 1:k) {
