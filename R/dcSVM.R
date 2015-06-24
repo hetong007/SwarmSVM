@@ -21,7 +21,7 @@
 #' svmguide1 = as.matrix(svmguide1[[1]])
 #' dcsvm.model = dcSVM(x = svmguide1[,-1], y = svmguide1[,1], 
 #'                     k = 2, max.levels = 2,
-#'                     kernel = 2,early = FALSE, m = 100)
+#'                     kernel = 2,early = 0, m = 100)
 #' preds = predict(dcsvm.model, svmguide1.t[,-1])
 #' 
 #' @export
@@ -36,6 +36,7 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
   support = rep(0,n)
   num.lvls = length(levels(y))
   alpha = matrix(0,n,num.lvls-1)
+  cluster.fun = cluster.fun.mlpack
   
   checkmate::assertInt(kernel, lower = 1, upper = 3)
   # kernlab.kernel = c('vanilladot','polydot','rbfdot')[kernel]
@@ -67,10 +68,10 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
 #       kkmeans.res = kernlab::kkmeans(as.matrix(x[ind,]), centers = kl,
 #                                      kernel = kernlab.kernel)
 #     }
-    kmeans.res = cluster.fun.mlpack(as.matrix(x[ind,]),centers = kl)
+    kmeans.res = cluster.fun(as.matrix(x[ind,]),centers = kl)
     
     # cluster.label = kern.predict(kkmeans.res, x)
-    cluster.label = kmeans.res$cluster
+    cluster.label = cluster.fun(kmeans.res, x)
     
     # Train svm for each cluster
     new.alpha = matrix(0,n,num.lvls-1)
@@ -99,7 +100,7 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
     }
     support = which(new.support)
     alpha = new.alpha
-    if (early<=lvl)
+    if (early>0 && early<=lvl)
       break
   }
   if (early == 0){
