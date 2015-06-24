@@ -37,8 +37,8 @@ data(svmguide1)
 svmguide1.t = as.matrix(svmguide1[[2]])
 svmguide1 = as.matrix(svmguide1[[1]])
 dcsvm.model = dcSVM(x = svmguide1[,-1], y = svmguide1[,1],
-                    k = 2, max.levels = 2,
-                    kernel = 2,early = 0, m = 100)
+                    k = 2, max.levels = 1,
+                    kernel = 3,early = 0, m = 500)
 preds = predict(dcsvm.model, svmguide1.t[,-1])
 }
 

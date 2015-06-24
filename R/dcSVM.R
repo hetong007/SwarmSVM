@@ -20,8 +20,8 @@
 #' svmguide1.t = as.matrix(svmguide1[[2]])
 #' svmguide1 = as.matrix(svmguide1[[1]])
 #' dcsvm.model = dcSVM(x = svmguide1[,-1], y = svmguide1[,1], 
-#'                     k = 2, max.levels = 2,
-#'                     kernel = 2,early = 0, m = 100)
+#'                     k = 2, max.levels = 1,
+#'                     kernel = 3,early = 0, m = 500)
 #' preds = predict(dcsvm.model, svmguide1.t[,-1])
 #' 
 #' @export
@@ -71,7 +71,7 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
     kmeans.res = cluster.fun(as.matrix(x[ind,]),centers = kl)
     
     # cluster.label = kern.predict(kkmeans.res, x)
-    cluster.label = cluster.fun(x, kmeans.res$centers)
+    cluster.label = cluster.fun(x, kmeans.res$centers)$cluster
     
     # Train svm for each cluster
     new.alpha = matrix(0,n,num.lvls-1)
