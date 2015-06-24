@@ -32,8 +32,9 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
     set.seed(seed)
   n = nrow(x)
   x = as.matrix(x)
+  y = as.factor(y)
   support = rep(0,n)
-  num.lvls = length(levels(as.factor(y)))
+  num.lvls = length(levels(y))
   alpha = matrix(0,n,num.lvls-1)
   
   checkmate::assertInt(kernel, lower = 1, upper = 3)
