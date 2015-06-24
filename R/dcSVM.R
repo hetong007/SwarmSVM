@@ -71,7 +71,7 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
     kmeans.res = cluster.fun(as.matrix(x[ind,]),centers = kl)
     
     # cluster.label = kern.predict(kkmeans.res, x)
-    cluster.label = cluster.fun(kmeans.res, x)
+    cluster.label = cluster.fun(x, kmeans.res$centers)
     
     # Train svm for each cluster
     new.alpha = matrix(0,n,num.lvls-1)
