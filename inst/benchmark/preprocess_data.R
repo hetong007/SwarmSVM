@@ -100,20 +100,49 @@ covtype = covtype[-ind,]
 covtype = list(covtype,covtype.t)
 save(covtype,file = 'covtype.RData',compress = 'xz')
 
+########################
+# For Gater SVM
+########################
 
+# Toy example 
+set.seed(1024)
+train.1 = cbind(runif(333,-1.7,-0.7),
+                runif(333,0.7,1.7))
+train.2 = cbind(runif(333,-0.5,0.5),
+                runif(333,-0.5,0.5))
+train.3 = cbind(runif(334,0.7,1.7),
+                runif(334,-1.7,-0.7))
+y = c(rep(1,333),rep(0,333),rep(1,334))
+train = rbind(train.1, train.2, train.3)
+train = cbind(train, y)
 
+test.1 = cbind(runif(3333,-1.7,-0.7),
+               runif(3333,0.7,1.7))
+test.2 = cbind(runif(3333,-0.5,0.5),
+               runif(3333,-0.5,0.5))
+test.3 = cbind(runif(3334,0.7,1.7),
+               runif(3334,-1.7,-0.7))
+y = c(rep(1,3333), rep(0,3333), rep(1,3334))
+test = rbind(test.1, test.2, test.3)
+test = cbind(test, y)
 
+toydata = list(train, test)
+save(toydata, file='toydata.RData', compress='xz')
 
-
-
-
-
-
-
-
-
-
-
+# covtype
+download.file('http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/multiclass/covtype.bz2',
+              'covtype.bz2')
+covtype = read.libsvm(bzfile('covtype.bz2'))
+set.seed(1024)
+n = nrow(covtype)
+covtype[,1] = as.numeric(covtype[,1]==2)
+covtype = covtype[,-2]
+max.train = apply(covtype,2,max)
+for (i in which(max.train!=1)) {
+  covtype[,i] = covtype[,i]/max.train[i]
+  cat(i,'\r')
+}
+save(covtype,file = 'covtype.mult.RData',compress = 'xz')
 
 
 
