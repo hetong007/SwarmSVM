@@ -6,6 +6,7 @@
 #' @import Matrix
 #' @import LiblineaR
 #' @import methods
+#' @import neuralnet
 #' @import checkmate
 #' @importFrom BBmisc suppressAll
 #' @useDynLib SwarmSVM
@@ -83,6 +84,38 @@ kern.predict = function(kkmeans.res, x) {
   result = max.col(-dist.mat)
   return(result)
 }
+
+#' DIrectly assign alpha to svm 
+#' 
+#' @param x the data matrix
+#' @param nclass the total number of classes
+#' @param class_rank the rank of class that the input data matrix has
+#' 
+oneclass.svm = function(x, nclass, class_rank) {
+  n = nrow(x)
+  y = sample(nclass, n, replace = TRUE)
+  y = as.factor(y)
+  model = svm(x, y, scale = FALSE)
+  model$index = 1:n
+  model$SV = x
+  model$tot.nSV = n
+  if (nclass == 2) {
+    if (class_rank==1) {
+      model$coefs = rep(model$cost,n)
+    } else {
+      model$coefs = rep(-model$cost,n)
+    }
+  } else {
+    if (class_rank==nclass) {
+      model$coefs = matrix(0, n, nclass-1)
+    } else {
+      model$coefs = matrix(-model$cost, n, nclass-1)
+      model$coefs[, class_rank] = model$cost
+    }
+  }
+  return(model)
+}
+
 
 #' svmguide1
 #' 

@@ -20,9 +20,9 @@
 #' svmguide1.t = as.matrix(svmguide1[[2]])
 #' svmguide1 = as.matrix(svmguide1[[1]])
 #' dcsvm.model = dcSVM(x = svmguide1[,-1], y = svmguide1[,1], 
-#'                     k = 2, max.levels = 2,
-#'                     kernel = 2,early = FALSE, m = 100)
-#' preds = predict(dcsvm.model, svmguide1.t[,-1])#' 
+#'                     k = 2, max.levels = 1,
+#'                     kernel = 3,early = 0, m = 500)
+#' preds = predict(dcsvm.model, svmguide1.t[,-1])
 #' 
 #' @export
 #' 
@@ -32,41 +32,46 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
     set.seed(seed)
   n = nrow(x)
   x = as.matrix(x)
+  y = as.factor(y)
   support = rep(0,n)
-  num.lvls = length(levels(as.factor(y)))
+  num.lvls = length(levels(y))
   alpha = matrix(0,n,num.lvls-1)
+  cluster.fun = cluster.fun.mlpack
   
   checkmate::assertInt(kernel, lower = 1, upper = 3)
-  kernlab.kernel = c('vanilladot','polydot','rbfdot')[kernel]
+  # kernlab.kernel = c('vanilladot','polydot','rbfdot')[kernel]
   svm.kernel = c('linear','polynomial','radial')[kernel]
   
-  kpar = list(...)
-  if (kernel==3) {
-    if (!is.null(kpar$gamma))
-      kpar$sigma = 1/kpar$gamma
-  } else if (kernel==2) {
-    if (!is.null(kpar$coef0))
-      kpar$offset = kpar$coef0
-    if (!is.null(kpar$gamma))
-      kpar$scale = 1/kpar$gamma
-  }
+#   kpar = list(...)
+#   if (kernel==3) {
+#     if (!is.null(kpar$gamma))
+#       kpar$sigma = 1/kpar$gamma
+#   } else if (kernel==2) {
+#     if (!is.null(kpar$coef0))
+#       kpar$offset = kpar$coef0
+#     if (!is.null(kpar$gamma))
+#       kpar$scale = 1/kpar$gamma
+#   }
   
   for (lvl in max.levels:1) {
     kl = k^lvl
-    if (lvl == max.levels)
-      ind = sample(1:n,m)
-    else
-      ind = sample(support,m)
-    
-    if (length(kpar)>0) {
-      kkmeans.res = kernlab::kkmeans(as.matrix(x[ind,]), centers = kl, kpar = kpar,
-                                     kernel = kernlab.kernel)
+    if (lvl == max.levels) {
+      ind = sample(1:n,min(n,m))
     } else {
-      kkmeans.res = kernlab::kkmeans(as.matrix(x[ind,]), centers = kl,
-                                     kernel = kernlab.kernel)
+      ind = sample(support,min(length(support),m))
     }
     
-    cluster.label = kern.predict(kkmeans.res, x)
+#     if (length(kpar)>0) {
+#       kkmeans.res = kernlab::kkmeans(as.matrix(x[ind,]), centers = kl, kpar = kpar,
+#                                      kernel = kernlab.kernel)
+#     } else {
+#       kkmeans.res = kernlab::kkmeans(as.matrix(x[ind,]), centers = kl,
+#                                      kernel = kernlab.kernel)
+#     }
+    kmeans.res = cluster.fun(as.matrix(x[ind,]),centers = kl)
+    
+    # cluster.label = kern.predict(kkmeans.res, x)
+    cluster.label = cluster.fun(x, kmeans.res$centers)$cluster
     
     # Train svm for each cluster
     new.alpha = matrix(0,n,num.lvls-1)
@@ -76,11 +81,17 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
       ind = which(cluster.label == clst)
       if (length(ind)>1) {
         # train the svm with given support vectors
-        if (lvl == max.levels)
-          svm.model = svm(x = x[ind,], y = y[ind], kernel = svm.kernel, ...)
-        else 
-          svm.model = svm(x = x[ind,], y = y[ind], kernel = svm.kernel, 
-                          alpha = alpha[ind,], ...)
+        if (length(unique(y[ind]))>1) {
+          if (lvl == max.levels) {
+            svm.model = svm(x = x[ind,], y = y[ind], kernel = svm.kernel, ...)
+          } else {
+            svm.model = svm(x = x[ind,], y = y[ind], kernel = svm.kernel, 
+                            alpha = alpha[ind,], ...) 
+          }
+        } else {
+          class_rank = which(unique(y[ind])==levels(y))
+          svm.model = oneclass.svm(x[ind,], num.lvls, class_rank)
+        }
         svm.models[[clst]] = svm.model
         sv.ind = ind[svm.model$index]
         new.support[sv.ind] = TRUE
@@ -89,7 +100,7 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
     }
     support = which(new.support)
     alpha = new.alpha
-    if (early<=lvl)
+    if (early>0 && early<=lvl)
       break
   }
   if (early == 0){
@@ -97,16 +108,17 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
     ind = support
     svm.models = svm(x = x[ind,], y = y[ind], kernel = svm.kernel, 
                      alpha = alpha[ind,], ...)
-    support = ind[svm.model$index]
-    alpha[support,] = svm.model$coefs
+    support = ind[svm.models$index]
+    alpha[support,] = svm.models$coefs
     
     # Final
     svm.models = svm(x = x, y = y, kernel = svm.kernel, alpha = alpha, ...)
   }
   # Result structure
   result = list(svm = svm.models,
-                kkmeans.res = kkmeans.res,
-                early = early)
+                kmeans.res = kmeans.res,
+                early = early,
+                cluster.fun = cluster.fun.mlpack)
   result = structure(result, class = "dcSVM")
   return(result)
 }
@@ -136,7 +148,8 @@ predict.dcSVM = function(object, newdata, ...) {
   
   # Assign label
   if (object$early > 0) {
-    new.result = kern.predict(object$kkmeans.res,newdata)
+    new.result = object$cluster.fun(newdata,object$kmeans.res)
+    new.result = new.result$cluster
     k = max(new.result)
     preds = rep(0, nrow(newdata))
     for (i in 1:k) {

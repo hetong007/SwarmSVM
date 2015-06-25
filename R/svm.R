@@ -238,8 +238,7 @@ function (x,
         type = "one-classification"
     
     type <- pmatch(type, c("C-classification",
-                           "nu-classification",
-                           "one-classification"), 99) - 1
+                           "nu-classification"), 99) - 1
 
     if (type > 10) stop("wrong type specification!")
 
