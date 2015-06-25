@@ -10,20 +10,52 @@
 #' @param c a positive constant controlling the upper bound of 
 #'     the number of samples in each subset.
 #' @param max.iter the number of iterations
+#' @param hidden the number of neurons on the hidden layer
+#' @param learningrate the learningrate for the back propagation
+#' @param ... other parameters passing to \code{neuralnet}
+#' 
+#' @examples
+#' 
+#' data(svmguide1)
+#' svmguide1.t = as.matrix(svmguide1[[2]])
+#' svmguide1 = as.matrix(svmguide1[[1]])
+#' res = gaterSVM(x = svmguide1[,-1], y = svmguide1[,1], m = 5, max.iter = 2)
+#' preds = predict(res,svmguide1.t[,-1])
 #' 
 #' @export
 #' 
-gaterSVM = function(x, y, m, c = 1, max.iter) {
+gaterSVM = function(x, y, m, c = 1, max.iter, hidden = 5, learningrate = 0.01, ...) {
   n = nrow(x)
   S = matrix(0, n, m)
+
+  y = as.factor(y)
+  if (length(levels(y))!=2)
+    stop("Only binary classification is supported")
+  y = 2*as.integer(y)-3
   
-  shuf = sample(n)
-  sub.ind = vector(m, mode = 'list')
+  # Positive indices
+  shuf = sample(which(y == 1))
+  pos.sub.ind = vector(m, mode = 'list')
   for (i in 1:(m-1)) {
-    sub.ind[[i]] = shuf[1:m]
-    shuf = setdiff(shuf,sub.ind[[i]])
+    pos.sub.ind[[i]] = shuf[1:m]
+    shuf = setdiff(shuf,pos.sub.ind[[i]])
   }
-  sub.ind[[m]] = shuf
+  pos.sub.ind[[m]] = shuf
+  
+  # Negative indices
+  shuf = sample(which(y == -1))
+  neg.sub.ind = vector(m, mode = 'list')
+  for (i in 1:(m-1)) {
+    neg.sub.ind[[i]] = shuf[1:m]
+    shuf = setdiff(shuf,neg.sub.ind[[i]])
+  }
+  neg.sub.ind[[m]] = shuf
+  
+  # Merge indices
+  sub.ind = list()
+  for (i in 1:m) {
+    sub.ind[[i]] = c(pos.sub.ind[[i]],neg.sub.ind[[i]])
+  }
   
   stopCondition = FALSE
   iter = 1
@@ -31,24 +63,27 @@ gaterSVM = function(x, y, m, c = 1, max.iter) {
   while (!stopCondition) {
     expert = vector(m, mode = 'list')
     for (i in 1:m) {
-      expert[[i]] = e1071::svm(x[sub.ind,], y[sub.ind])
+      expert[[i]] = e1071::svm(x[sub.ind[[i]],], as.factor(y[sub.ind[[i]]]))
       S[,i] = predict(expert[[i]], x)
     }
+    S = 2*S-3
     
     # Train weight
-    gater.model = gater(x, y, S)
+    gater.model = gater(x = x, y = y, S = S, hidden = hidden, 
+                        learningrate = learningrate, ...)
     W = predict(gater.model, x)
     
     # Re-arrange vectors
     sub.assign = rep(0,n)
     sub.num = rep(0, m)
     sub.avail = rep(1,m)
+    W = W-min(W)+1e-9
     for (i in 1:n) {
       ind = which.max(sub.avail*W[i,])
       sub.assign[i] = ind
       sub.num[ind] = sub.num[ind]+1
-      if (sub.num[ind]>n/m+c)
-        sub.avail[ind] = 0
+      if (sub.num[ind] > (n/m+c))
+        sub.avail[ind] = -Inf
     }
     for (i in 1:m) {
       sub.ind[[i]] = which(sub.assign==i)
@@ -85,6 +120,6 @@ predict.gaterSVM = function(object, newdata, ...) {
     S[,i] = predict(object$expert[[i]], newdata)
   }
   W = predict(object$gater, newdata)
-  pred = sign(tanh(colSums(W*S)))
+  pred = sign(object$gater$act.fun(rowSums(W*S)))
   return(pred)
 }

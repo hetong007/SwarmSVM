@@ -4,7 +4,7 @@
 \alias{gater}
 \title{Gater function for mixture SVMs}
 \usage{
-gater(x, y, S)
+gater(x, y, S, hidden, learningrate = 0.01, ...)
 }
 \arguments{
 \item{x}{the nxp training data matrix. Could be a matrix or a sparse matrix object.}
@@ -15,6 +15,10 @@ a simple vector or a factor. For regression, the values correspond to the values
 and can be a 1xn matrix or a simple vector.}
 
 \item{S}{the prediction matrix from experts}
+
+\item{hidden}{the number of neurons in the hidden layer}
+
+\item{learningrate}{the learningrate for the back propagation}
 }
 \description{
 Gater function for mixture SVMs

@@ -6,7 +6,6 @@
 #' @import Matrix
 #' @import LiblineaR
 #' @import methods
-#' @import neuralnet
 #' @import checkmate
 #' @importFrom BBmisc suppressAll
 #' @useDynLib SwarmSVM

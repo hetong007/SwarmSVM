@@ -6,17 +6,32 @@
 #'     a simple vector or a factor. For regression, the values correspond to the values to predict, 
 #'     and can be a 1xn matrix or a simple vector.
 #' @param S the prediction matrix from experts
-#' 
+#' @param hidden the number of neurons in the hidden layer 
+#' @param learningrate the learningrate for the back propagation
+#' @param ... other parameters passing to \code{neuralnet}
 #' 
 #' @export
 #' 
-gater = function(x, y, S, hidden) {
+gater = function(x, y, S, hidden, learningrate = 0.01, ...) {
   m = ncol(S)
   n = nrow(x)
   p = ncol(x)
   out.num = 1
-  model = neuralnet.expert.weight(x, y, hidden, S)
-  res = list(model = model,
+  
+  x = as.data.frame(x)
+  colnames(x) = paste0('X',1:ncol(x))
+  data = data.frame(Y = y, x)
+  formula = paste0('Y~',
+                   paste(colnames(x),collapse='+'))
+  net = neuralnet(formula, data, hidden = c(hidden,m), intercept = FALSE,
+                  last.weight = S, algorithm = 'backprop', act.fct = 'tanh',
+                  learningrate = learningrate,
+                  linear.output = FALSE, ...)
+  weights = net$weights[[1]]
+  len = length(weights)
+  weights = weights[-len]
+  res = list(weights = weights,
+             act.fun = net$act.fct,
              m = m)
   res = structure(res, class = "gater")
   return(res)
@@ -37,6 +52,11 @@ gater = function(x, y, S, hidden) {
 #' @export
 #' 
 predict.gater = function(object, newdata, ...) {
-  res = matrix(1, nrow(newdata), object$m)
+  if (!is.matrix(newdata))
+    newdata = data.matrix(newdata)
+  len = length(object$weights)
+  for (i in 1:len)
+    newdata = object$act.fun(newdata %*% object$weights[[i]])
+  res = newdata
   return(res)
 }

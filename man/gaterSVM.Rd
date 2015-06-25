@@ -4,7 +4,7 @@
 \alias{gaterSVM}
 \title{Mixture SVMs with gater function}
 \usage{
-gaterSVM(x, y, m, c = 1, max.iter)
+gaterSVM(x, y, m, c = 1, max.iter, hidden = 5, learningrate = 0.01, ...)
 }
 \arguments{
 \item{x}{the nxp training data matrix. Could be a matrix or a sparse matrix object.}
@@ -20,8 +20,21 @@ and can be a 1xn matrix or a simple vector.}
 the number of samples in each subset.}
 
 \item{max.iter}{the number of iterations}
+
+\item{hidden}{the number of neurons on the hidden layer}
+
+\item{learningrate}{the learningrate for the back propagation}
+
+\item{...}{other parameters passing to \code{neuralnet}}
 }
 \description{
 Mixture SVMs with gater function
+}
+\examples{
+data(svmguide1)
+svmguide1.t = as.matrix(svmguide1[[2]])
+svmguide1 = as.matrix(svmguide1[[1]])
+res = gaterSVM(x = svmguide1[,-1], y = svmguide1[,1], m = 5, max.iter = 2)
+preds = predict(res,svmguide1.t[,-1])
 }
 
