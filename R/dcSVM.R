@@ -108,8 +108,8 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
     ind = support
     svm.models = svm(x = x[ind,], y = y[ind], kernel = svm.kernel, 
                      alpha = alpha[ind,], ...)
-    support = ind[svm.model$index]
-    alpha[support,] = svm.model$coefs
+    support = ind[svm.models$index]
+    alpha[support,] = svm.models$coefs
     
     # Final
     svm.models = svm(x = x, y = y, kernel = svm.kernel, alpha = alpha, ...)
