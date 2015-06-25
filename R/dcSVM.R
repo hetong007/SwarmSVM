@@ -148,7 +148,7 @@ predict.dcSVM = function(object, newdata, ...) {
   
   # Assign label
   if (object$early > 0) {
-    new.result = object$cluster.fun(object$kmeans.res,newdata)
+    new.result = object$cluster.fun(newdata,object$kmeans.res)
     new.result = new.result$cluster
     k = max(new.result)
     preds = rep(0, nrow(newdata))

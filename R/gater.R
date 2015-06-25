@@ -10,10 +10,13 @@
 #' 
 #' @export
 #' 
-gater = function(x, y, S) {
+gater = function(x, y, S, hidden) {
   m = ncol(S)
-  weights = rep(1,m)
-  res = list(weights = weights,
+  n = nrow(x)
+  p = ncol(x)
+  out.num = 1
+  model = neuralnet.expert.weight(x, y, hidden, S)
+  res = list(model = model,
              m = m)
   res = structure(res, class = "gater")
   return(res)
