@@ -3,8 +3,8 @@ function (formula, data, hidden = 1, threshold = 0.01, stepmax = 1e+05,
     rep = 1, startweights = NULL, learningrate.limit = NULL, 
     learningrate.factor = list(minus = 0.5, plus = 1.2), learningrate = NULL, 
     lifesign = "none", lifesign.step = 1000, algorithm = "rprop+", 
-    err.fct = "sse", act.fct = "logistic", linear.output = TRUE, 
-    exclude = NULL, constant.weights = NULL, likelihood = FALSE) 
+    err.fct = "sse", act.fct = "logistic", linear.output = TRUE, intercept = TRUE,
+    exclude = NULL, constant.weights = NULL, last.weight = NULL, likelihood = FALSE) 
 {
     call <- match.call()
     options(scipen = 100, digits = 10)
@@ -29,7 +29,7 @@ function (formula, data, hidden = 1, threshold = 0.01, stepmax = 1e+05,
     matrix <- NULL
     list.result <- NULL
     result <- generate.initial.variables(data, model.list, hidden, 
-        act.fct, err.fct, algorithm, linear.output, formula)
+        act.fct, err.fct, algorithm, linear.output, formula, intercept = intercept)
     covariate <- result$covariate
     response <- result$response
     err.fct <- result$err.fct
@@ -50,9 +50,9 @@ function (formula, data, hidden = 1, threshold = 0.01, stepmax = 1e+05,
             err.fct = err.fct, err.deriv.fct = err.deriv.fct, 
             act.fct = act.fct, act.deriv.fct = act.deriv.fct, 
             rep = i, linear.output = linear.output, exclude = exclude, 
-            constant.weights = constant.weights, 
+            constant.weights = constant.weights, last.weight = last.weight,
             likelihood = likelihood, 
-            learningrate.bp = learningrate.bp)
+            learningrate.bp = learningrate.bp, intercept = intercept)
         if (!is.null(result$output.vector)) {
             list.result <- c(list.result, list(result))
             matrix <- cbind(matrix, result$output.vector)
@@ -198,7 +198,7 @@ function (data, formula, startweights, learningrate.limit, learningrate.factor,
 }
 generate.initial.variables <-
 function (data, model.list, hidden, act.fct, err.fct, algorithm, 
-    linear.output, formula) 
+    linear.output, formula, intercept) 
 {
     formula.reverse <- formula
     formula.reverse[[2]] <- as.formula(paste(model.list$response[[1]], 
@@ -207,8 +207,12 @@ function (data, model.list, hidden, act.fct, err.fct, algorithm,
     response <- as.matrix(model.frame(formula.reverse, data))
     formula.reverse[[3]] <- formula[[3]]
     covariate <- as.matrix(model.frame(formula.reverse, data))
-    covariate[, 1] <- 1
-    colnames(covariate)[1] <- "intercept"
+    if (intercept) {
+      covariate[, 1] <- 1
+      colnames(covariate)[1] <- "intercept"
+    } else {
+      covariate = covariate[,-1]
+    }
     if (is.function(act.fct)) {
         act.deriv.fct <- differentiate(act.fct)
         attr(act.fct, "type") <- "function"
@@ -338,11 +342,11 @@ function (data, model.list, hidden, stepmax, rep, threshold,
     learningrate.limit, learningrate.factor, lifesign, covariate, 
     response, lifesign.step, startweights, algorithm, act.fct, 
     act.deriv.fct, err.fct, err.deriv.fct, linear.output, likelihood, 
-    exclude, constant.weights, learningrate.bp) 
+    exclude, constant.weights, last.weight, learningrate.bp, intercept) 
 {
     time.start.local <- Sys.time()
     result <- generate.startweights(model.list, hidden, startweights, 
-        rep, exclude, constant.weights)
+        rep, exclude, constant.weights, intercept = intercept)
     weights <- result$weights
     exclude <- result$exclude
     nrow.weights <- sapply(weights, nrow)
@@ -353,7 +357,8 @@ function (data, model.list, hidden, stepmax, rep, threshold,
         lifesign = lifesign, lifesign.step = lifesign.step, act.fct = act.fct, 
         act.deriv.fct = act.deriv.fct, err.fct = err.fct, err.deriv.fct = err.deriv.fct, 
         algorithm = algorithm, linear.output = linear.output, 
-        exclude = exclude, learningrate.bp = learningrate.bp)
+        exclude = exclude, last.weight = last.weight, 
+        learningrate.bp = learningrate.bp, intercept = intercept)
     startweights <- weights
     weights <- result$weights
     step <- result$step
@@ -411,7 +416,8 @@ function (data, model.list, hidden, stepmax, rep, threshold,
     for (w in 1:length(weights)) output.vector <- c(output.vector, 
         as.vector(weights[[w]]))
     generalized.weights <- calculate.generalized.weights(weights, 
-        neuron.deriv = result$neuron.deriv, net.result = net.result)
+        neuron.deriv = result$neuron.deriv, net.result = net.result, 
+        intercept = intercept)
     startweights <- unlist(startweights)
     weights <- unlist(weights)
     if (!is.null(exclude)) {
@@ -425,7 +431,7 @@ function (data, model.list, hidden, stepmax, rep, threshold,
         output.vector = output.vector))
 }
 generate.startweights <-
-function (model.list, hidden, startweights, rep, exclude, constant.weights) 
+function (model.list, hidden, startweights, rep, exclude, constant.weights, intercept) 
 {
     input.count <- length(model.list$variables)
     output.count <- length(model.list$response)
@@ -433,20 +439,35 @@ function (model.list, hidden, startweights, rep, exclude, constant.weights)
         length.weights <- length(hidden) + 1
         nrow.weights <- array(0, dim = c(length.weights))
         ncol.weights <- array(0, dim = c(length.weights))
-        nrow.weights[1] <- (input.count + 1)
+        if (intercept) {
+          nrow.weights[1] <- (input.count + 1)
+        } else {
+          nrow.weights[1] <- input.count
+        }
         ncol.weights[1] <- hidden[1]
         if (length(hidden) > 1) 
             for (i in 2:length(hidden)) {
-                nrow.weights[i] <- hidden[i - 1] + 1
+                if (intercept) {
+                  nrow.weights[i] <- hidden[i - 1] + 1
+                } else {
+                  nrow.weights[i] <- hidden[i - 1]
+                }
                 ncol.weights[i] <- hidden[i]
             }
-        nrow.weights[length.weights] <- hidden[length.weights - 
-            1] + 1
+        if (intercept) {
+          nrow.weights[length.weights] <- hidden[length.weights - 1] + 1
+        } else {
+          nrow.weights[length.weights] <- hidden[length.weights - 1]
+        }
         ncol.weights[length.weights] <- output.count
     }
     else {
         length.weights <- 1
-        nrow.weights <- array((input.count + 1), dim = c(1))
+        if (intercept) {
+          nrow.weights <- array((input.count + 1), dim = c(1))
+        } else {
+          nrow.weights <- array((input.count), dim = c(1))
+        }
         ncol.weights <- array(output.count, dim = c(1))
     }
     length <- sum(ncol.weights * nrow.weights)
@@ -513,7 +534,7 @@ rprop <-
 function (weights, response, covariate, threshold, learningrate.limit, 
     learningrate.factor, stepmax, lifesign, lifesign.step, act.fct, 
     act.deriv.fct, err.fct, err.deriv.fct, algorithm, linear.output, 
-    exclude, learningrate.bp) 
+    exclude, learningrate.bp, last.weight, intercept) 
 {
     step <- 1
     nchar.stepmax <- max(nchar(stepmax), 7)
@@ -548,11 +569,13 @@ function (weights, response, covariate, threshold, learningrate.limit,
     }
     result <- compute.net(weights, length.weights, covariate = covariate, 
         act.fct = act.fct, act.deriv.fct = act.deriv.fct, output.act.fct = output.act.fct, 
-        output.act.deriv.fct = output.act.deriv.fct, special)
+        output.act.deriv.fct = output.act.deriv.fct, special, 
+        last.weight = last.weight, intercept = intercept)
     err.deriv <- err.deriv.fct(result$net.result, response)
     gradients <- calculate.gradients(weights = weights, length.weights = length.weights, 
         neurons = result$neurons, neuron.deriv = result$neuron.deriv, 
-        err.deriv = err.deriv, exclude = exclude, linear.output = linear.output)
+        err.deriv = err.deriv, exclude = exclude, linear.output = linear.output,
+        intercept = intercept)
     reached.threshold <- max(abs(gradients))
     min.reached.threshold <- reached.threshold
     while (step < stepmax && reached.threshold > threshold) {
@@ -582,12 +605,19 @@ function (weights, response, covariate, threshold, learningrate.limit,
         result <- compute.net(weights, length.weights, covariate = covariate, 
             act.fct = act.fct, act.deriv.fct = act.deriv.fct, 
             output.act.fct = output.act.fct, output.act.deriv.fct = output.act.deriv.fct, 
-            special)
+            special, last.weight = last.weight, intercept = intercept)
         err.deriv <- err.deriv.fct(result$net.result, response)
         gradients <- calculate.gradients(weights = weights, length.weights = length.weights, 
             neurons = result$neurons, neuron.deriv = result$neuron.deriv, 
-            err.deriv = err.deriv, exclude = exclude, linear.output = linear.output)
-        reached.threshold <- max(abs(gradients))
+            err.deriv = err.deriv, exclude = exclude, linear.output = linear.output,
+            intercept = intercept)
+        if (is.null(last.weight)) {
+          reached.threshold <- max(abs(gradients))
+        } else {
+          len.grad = length(gradients)
+          len.last.weight = ncol(last.weight)
+          reached.threshold <- max(abs(gradients[1:(len.grad-len.last.weight)]))
+        }
         if (reached.threshold < min.reached.threshold) {
             min.reached.threshold <- reached.threshold
         }
@@ -602,7 +632,7 @@ function (weights, response, covariate, threshold, learningrate.limit,
 }
 compute.net <-
 function (weights, length.weights, covariate, act.fct, act.deriv.fct, 
-    output.act.fct, output.act.deriv.fct, special) 
+    output.act.fct, output.act.deriv.fct, special, last.weight, intercept) 
 {
     neuron.deriv <- NULL
     neurons <- list(covariate)
@@ -613,11 +643,21 @@ function (weights, length.weights, covariate, act.fct, act.deriv.fct,
             if (special) 
                 neuron.deriv[[i]] <- act.deriv.fct(act.temp)
             else neuron.deriv[[i]] <- act.deriv.fct(temp)
-            neurons[[i + 1]] <- cbind(1, act.temp)
+            if (intercept) {
+              neurons[[i + 1]] <- cbind(1, act.temp)
+            } else {
+              neurons[[i + 1]] <- act.temp
+            }
         }
     if (!is.list(neuron.deriv)) 
         neuron.deriv <- list(neuron.deriv)
-    temp <- neurons[[length.weights]] %*% weights[[length.weights]]
+    if (is.null(last.weight)) {
+      temp <- neurons[[length.weights]] %*% weights[[length.weights]]
+    } else {
+      temp <- neurons[[length.weights]] * last.weight
+      temp <- rowSums(temp)
+      temp <- matrix(temp,length(temp),1)
+    }
     net.result <- output.act.fct(temp)
     if (special) 
         neuron.deriv[[length.weights]] <- output.act.deriv.fct(net.result)
@@ -629,7 +669,7 @@ function (weights, length.weights, covariate, act.fct, act.deriv.fct,
 }
 calculate.gradients <-
 function (weights, length.weights, neurons, neuron.deriv, err.deriv, 
-    exclude, linear.output) 
+    exclude, linear.output, intercept) 
 {
     if (any(is.na(err.deriv))) 
         stop("the error derivative contains a NA; varify that the derivative function does not divide by 0 (e.g. cross entropy)", 
@@ -640,8 +680,12 @@ function (weights, length.weights, neurons, neuron.deriv, err.deriv,
     gradients <- crossprod(neurons[[length.weights]], delta)
     if (length.weights > 1) 
         for (w in (length.weights - 1):1) {
-            delta <- neuron.deriv[[w]] * tcrossprod(delta, remove.intercept(weights[[w + 
-                1]]))
+            if (intercept) {
+              delta <- neuron.deriv[[w]] * tcrossprod(delta, remove.intercept(weights[[w + 
+                  1]]))
+            } else {
+              delta <- neuron.deriv[[w]] * tcrossprod(delta, weights[[w + 1]])
+            }
             gradients <- c(crossprod(neurons[[w]], delta), gradients)
         }
     gradients[-exclude]
@@ -730,10 +774,12 @@ function (gradients, gradients.old, weights, length.weights,
         nrow.weights, ncol.weights), learningrate = learningrate)
 }
 calculate.generalized.weights <-
-function (weights, neuron.deriv, net.result) 
+function (weights, neuron.deriv, net.result, intercept) 
 {
-    for (w in 1:length(weights)) {
-        weights[[w]] <- remove.intercept(weights[[w]])
+    if (intercept) {
+      for (w in 1:length(weights)) {
+          weights[[w]] <- remove.intercept(weights[[w]])
+      }
     }
     generalized.weights <- NULL
     for (k in 1:ncol(net.result)) {
