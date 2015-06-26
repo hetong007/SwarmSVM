@@ -4,7 +4,8 @@ function (formula, data, hidden = 1, threshold = 0.01, stepmax = 1e+05,
     learningrate.factor = list(minus = 0.5, plus = 1.2), learningrate = NULL, 
     lifesign = "none", lifesign.step = 1000, algorithm = "rprop+", 
     err.fct = "sse", act.fct = "logistic", linear.output = TRUE, intercept = TRUE,
-    exclude = NULL, constant.weights = NULL, last.weight = NULL, likelihood = FALSE) 
+    exclude = NULL, constant.weights = NULL, last.weight = NULL, likelihood = FALSE,
+    true.response = NULL) 
 {
     call <- match.call()
     options(scipen = 100, digits = 10)
@@ -51,7 +52,7 @@ function (formula, data, hidden = 1, threshold = 0.01, stepmax = 1e+05,
             act.fct = act.fct, act.deriv.fct = act.deriv.fct, 
             rep = i, linear.output = linear.output, exclude = exclude, 
             constant.weights = constant.weights, last.weight = last.weight,
-            likelihood = likelihood, 
+            likelihood = likelihood, true.response = true.response,
             learningrate.bp = learningrate.bp, intercept = intercept)
         if (!is.null(result$output.vector)) {
             list.result <- c(list.result, list(result))
@@ -342,7 +343,7 @@ function (data, model.list, hidden, stepmax, rep, threshold,
     learningrate.limit, learningrate.factor, lifesign, covariate, 
     response, lifesign.step, startweights, algorithm, act.fct, 
     act.deriv.fct, err.fct, err.deriv.fct, linear.output, likelihood, 
-    exclude, constant.weights, last.weight, learningrate.bp, intercept) 
+    exclude, constant.weights, last.weight, learningrate.bp, intercept, true.response) 
 {
     time.start.local <- Sys.time()
     result <- generate.startweights(model.list, hidden, startweights, 
@@ -357,7 +358,7 @@ function (data, model.list, hidden, stepmax, rep, threshold,
         lifesign = lifesign, lifesign.step = lifesign.step, act.fct = act.fct, 
         act.deriv.fct = act.deriv.fct, err.fct = err.fct, err.deriv.fct = err.deriv.fct, 
         algorithm = algorithm, linear.output = linear.output, 
-        exclude = exclude, last.weight = last.weight, 
+        exclude = exclude, last.weight = last.weight, true.response = true.response,
         learningrate.bp = learningrate.bp, intercept = intercept)
     startweights <- weights
     weights <- result$weights
@@ -534,7 +535,7 @@ rprop <-
 function (weights, response, covariate, threshold, learningrate.limit, 
     learningrate.factor, stepmax, lifesign, lifesign.step, act.fct, 
     act.deriv.fct, err.fct, err.deriv.fct, algorithm, linear.output, 
-    exclude, learningrate.bp, last.weight, intercept) 
+    exclude, learningrate.bp, last.weight, intercept, true.response) 
 {
     step <- 1
     nchar.stepmax <- max(nchar(stepmax), 7)
@@ -571,7 +572,12 @@ function (weights, response, covariate, threshold, learningrate.limit,
         act.fct = act.fct, act.deriv.fct = act.deriv.fct, output.act.fct = output.act.fct, 
         output.act.deriv.fct = output.act.deriv.fct, special, 
         last.weight = last.weight, intercept = intercept)
-    err.deriv <- err.deriv.fct(result$net.result, response)
+    if (is.null(true.response)) {
+      err.deriv <- err.deriv.fct(result$net.result, response)
+    } else {
+      fxi = tanh(rowSums(result$net.result*response))
+      err.deriv = (true.response-fxi)* (1-fxi*fxi) * response
+    }
     gradients <- calculate.gradients(weights = weights, length.weights = length.weights, 
         neurons = result$neurons, neuron.deriv = result$neuron.deriv, 
         err.deriv = err.deriv, exclude = exclude, linear.output = linear.output,
@@ -606,18 +612,23 @@ function (weights, response, covariate, threshold, learningrate.limit,
             act.fct = act.fct, act.deriv.fct = act.deriv.fct, 
             output.act.fct = output.act.fct, output.act.deriv.fct = output.act.deriv.fct, 
             special, last.weight = last.weight, intercept = intercept)
-        err.deriv <- err.deriv.fct(result$net.result, response)
+        if (is.null(true.response)) {
+          err.deriv <- err.deriv.fct(result$net.result, response)
+        } else {
+          fxi = tanh(rowSums(result$net.result*response))
+          err.deriv = (true.response-fxi)* (1-fxi*fxi) * response
+        }
         gradients <- calculate.gradients(weights = weights, length.weights = length.weights, 
             neurons = result$neurons, neuron.deriv = result$neuron.deriv, 
             err.deriv = err.deriv, exclude = exclude, linear.output = linear.output,
             intercept = intercept)
-        if (is.null(last.weight)) {
+        #if (is.null(last.weight)) {
           reached.threshold <- max(abs(gradients))
-        } else {
-          len.grad = length(gradients)
-          len.last.weight = ncol(last.weight)
-          reached.threshold <- max(abs(gradients[1:(len.grad-len.last.weight)]))
-        }
+        #} else {
+        #  len.grad = length(gradients)
+        #  len.last.weight = ncol(last.weight)
+        #  reached.threshold <- max(abs(gradients[1:(len.grad-len.last.weight)]))
+        #}
         if (reached.threshold < min.reached.threshold) {
             min.reached.threshold <- reached.threshold
         }
@@ -651,13 +662,13 @@ function (weights, length.weights, covariate, act.fct, act.deriv.fct,
         }
     if (!is.list(neuron.deriv)) 
         neuron.deriv <- list(neuron.deriv)
-    if (is.null(last.weight)) {
+    #if (is.null(last.weight)) {
       temp <- neurons[[length.weights]] %*% weights[[length.weights]]
-    } else {
-      temp <- neurons[[length.weights]] * last.weight
-      temp <- rowSums(temp)
-      temp <- matrix(temp,length(temp),1)
-    }
+    #} else {
+    #  temp <- neurons[[length.weights]] * last.weight
+    #  temp <- rowSums(temp)
+    #  temp <- matrix(temp,length(temp),1)
+    #}
     net.result <- output.act.fct(temp)
     if (special) 
         neuron.deriv[[length.weights]] <- output.act.deriv.fct(net.result)

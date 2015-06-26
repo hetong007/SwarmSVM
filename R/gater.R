@@ -20,16 +20,17 @@ gater = function(x, y, S, hidden, learningrate = 0.01, ...) {
   
   x = as.data.frame(x)
   colnames(x) = paste0('X',1:ncol(x))
-  data = data.frame(Y = y, x)
-  formula = paste0('Y~',
+  S = as.data.frame(S)
+  colnames(S) = paste0('S',1:ncol(S))
+  data = data.frame(S, x)
+  formula = paste0(paste(colnames(S),collapse='+'),
+                   '~',
                    paste(colnames(x),collapse='+'))
-  net = neuralnet(formula, data, hidden = c(hidden,m), intercept = FALSE,
-                  last.weight = S, algorithm = 'backprop', act.fct = 'tanh',
-                  learningrate = learningrate,
+  net = neuralnet(formula, data, hidden = hidden, intercept = TRUE,
+                  algorithm = 'backprop', act.fct = 'tanh',
+                  learningrate = learningrate, true.response = y,
                   linear.output = FALSE, ...)
   weights = net$weights[[1]]
-  len = length(weights)
-  weights = weights[-len]
   res = list(weights = weights,
              act.fun = net$act.fct,
              m = m)
@@ -56,7 +57,7 @@ predict.gater = function(object, newdata, ...) {
     newdata = data.matrix(newdata)
   len = length(object$weights)
   for (i in 1:len)
-    newdata = object$act.fun(newdata %*% object$weights[[i]])
+    newdata = object$act.fun(cbind(1, newdata) %*% object$weights[[i]])
   res = newdata
   return(res)
 }

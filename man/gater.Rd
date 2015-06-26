@@ -19,6 +19,8 @@ and can be a 1xn matrix or a simple vector.}
 \item{hidden}{the number of neurons in the hidden layer}
 
 \item{learningrate}{the learningrate for the back propagation}
+
+\item{...}{other parameters passing to \code{neuralnet}}
 }
 \description{
 Gater function for mixture SVMs
