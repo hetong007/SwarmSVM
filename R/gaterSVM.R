@@ -21,6 +21,9 @@
 #' svmguide1 = as.matrix(svmguide1[[1]])
 #' res = gaterSVM(x = svmguide1[,-1], y = svmguide1[,1], m = 5, max.iter = 2)
 #' preds = predict(res,svmguide1.t[,-1])
+#' tb = table(preds,svmguide1.t[,1])
+#' tb
+#' sum(diag(tb))/nrow(svmguide1.t)
 #' 
 #' @export
 #' 
@@ -32,21 +35,25 @@ gaterSVM = function(x, y, m, c = 1, max.iter, hidden = 5, learningrate = 0.01, .
   if (length(levels(y))!=2)
     stop("Only binary classification is supported")
   y = 2*as.integer(y)-3
+  all.data = data.frame(y = as.factor(y), x = x)
+  
   
   # Positive indices
   shuf = sample(which(y == 1))
+  fold.len = length(shuf) %/% m
   pos.sub.ind = vector(m, mode = 'list')
   for (i in 1:(m-1)) {
-    pos.sub.ind[[i]] = shuf[1:m]
+    pos.sub.ind[[i]] = shuf[1:fold.len]
     shuf = setdiff(shuf,pos.sub.ind[[i]])
   }
   pos.sub.ind[[m]] = shuf
   
   # Negative indices
   shuf = sample(which(y == -1))
+  fold.len = length(shuf) %/% m
   neg.sub.ind = vector(m, mode = 'list')
   for (i in 1:(m-1)) {
-    neg.sub.ind[[i]] = shuf[1:m]
+    neg.sub.ind[[i]] = shuf[1:fold.len]
     shuf = setdiff(shuf,neg.sub.ind[[i]])
   }
   neg.sub.ind[[m]] = shuf
@@ -54,7 +61,7 @@ gaterSVM = function(x, y, m, c = 1, max.iter, hidden = 5, learningrate = 0.01, .
   # Merge indices
   sub.ind = list()
   for (i in 1:m) {
-    sub.ind[[i]] = c(pos.sub.ind[[i]],neg.sub.ind[[i]])
+    sub.ind[[i]] = sample(c(pos.sub.ind[[i]],neg.sub.ind[[i]]))
   }
   
   stopCondition = FALSE
@@ -63,10 +70,15 @@ gaterSVM = function(x, y, m, c = 1, max.iter, hidden = 5, learningrate = 0.01, .
   while (!stopCondition) {
     expert = vector(m, mode = 'list')
     for (i in 1:m) {
-      expert[[i]] = e1071::svm(x[sub.ind[[i]],], as.factor(y[sub.ind[[i]]]))
-      S[,i] = predict(expert[[i]], x)
+      sub.data = data.frame(y = as.factor(y[sub.ind[[i]]]), x = x[sub.ind[[i]],])
+      BBmisc::suppressAll({
+        #expert[[i]] = e1071::svm(x = x[sub.ind[[i]],], y = as.factor(y[sub.ind[[i]]]))
+        #expert[[i]] = e1071::svm(y~., data = sub.data,)
+        expert[[i]] = glm(y~., data = sub.data, family = binomial)
+      })
+      S[,i] = predict(expert[[i]], all.data)
     }
-    S = 2*S-3
+    # S = 2*S-3
     
     # Train weight
     gater.model = gater(x = x, y = y, S = S, hidden = hidden, 
@@ -116,10 +128,11 @@ predict.gaterSVM = function(object, newdata, ...) {
   n = nrow(newdata)
   m = length(object$expert)
   S = matrix(0, n, m)
+  newdata = data.frame(x = newdata)
   for (i in 1:m) {
     S[,i] = predict(object$expert[[i]], newdata)
   }
   W = predict(object$gater, newdata)
-  pred = sign(object$gater$act.fun(rowSums(W*S)))
+  pred = sign(object$gater$net$act.fct(rowSums(W*S)))
   return(pred)
 }

@@ -576,7 +576,7 @@ function (weights, response, covariate, threshold, learningrate.limit,
       err.deriv <- err.deriv.fct(result$net.result, response)
     } else {
       fxi = tanh(rowSums(result$net.result*response))
-      err.deriv = (true.response-fxi)* (1-fxi*fxi) * response
+      err.deriv = (fxi-true.response)* (1-fxi*fxi) * response
     }
     gradients <- calculate.gradients(weights = weights, length.weights = length.weights, 
         neurons = result$neurons, neuron.deriv = result$neuron.deriv, 
@@ -616,7 +616,7 @@ function (weights, response, covariate, threshold, learningrate.limit,
           err.deriv <- err.deriv.fct(result$net.result, response)
         } else {
           fxi = tanh(rowSums(result$net.result*response))
-          err.deriv = (true.response-fxi)* (1-fxi*fxi) * response
+          err.deriv = (fxi-true.response)* (1-fxi*fxi) * response
         }
         gradients <- calculate.gradients(weights = weights, length.weights = length.weights, 
             neurons = result$neurons, neuron.deriv = result$neuron.deriv, 
@@ -624,6 +624,7 @@ function (weights, response, covariate, threshold, learningrate.limit,
             intercept = intercept)
         #if (is.null(last.weight)) {
           reached.threshold <- max(abs(gradients))
+        cat(sum((true.response-fxi)^2),min.reached.threshold,'\n')
         #} else {
         #  len.grad = length(gradients)
         #  len.last.weight = ncol(last.weight)

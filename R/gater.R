@@ -30,10 +30,8 @@ gater = function(x, y, S, hidden, learningrate = 0.01, ...) {
                   algorithm = 'backprop', act.fct = 'tanh',
                   learningrate = learningrate, true.response = y,
                   linear.output = FALSE, ...)
-  weights = net$weights[[1]]
-  res = list(weights = weights,
-             act.fun = net$act.fct,
-             m = m)
+  # weights = net$weights[[1]]
+  res = list(net = net)
   res = structure(res, class = "gater")
   return(res)
 }
@@ -53,11 +51,6 @@ gater = function(x, y, S, hidden, learningrate = 0.01, ...) {
 #' @export
 #' 
 predict.gater = function(object, newdata, ...) {
-  if (!is.matrix(newdata))
-    newdata = data.matrix(newdata)
-  len = length(object$weights)
-  for (i in 1:len)
-    newdata = object$act.fun(cbind(1, newdata) %*% object$weights[[i]])
-  res = newdata
+  res = compute(object$net, newdata)$net.result
   return(res)
 }
