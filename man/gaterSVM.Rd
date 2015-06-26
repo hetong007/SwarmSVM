@@ -36,5 +36,8 @@ svmguide1.t = as.matrix(svmguide1[[2]])
 svmguide1 = as.matrix(svmguide1[[1]])
 res = gaterSVM(x = svmguide1[,-1], y = svmguide1[,1], m = 5, max.iter = 2)
 preds = predict(res,svmguide1.t[,-1])
+tb = table(preds,svmguide1.t[,1])
+tb
+sum(diag(tb))/nrow(svmguide1.t)
 }
 

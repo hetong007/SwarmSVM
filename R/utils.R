@@ -46,7 +46,7 @@ cluster.fun.mlpack = function(x, centers, ...) {
     }
   } else {
     BBmisc::suppressAll({
-      result = mlKmeans(t(as.matrix(x)),centers[1])
+      result = RcppMLPACK::mlKmeans(t(as.matrix(x)),centers[1])
     })
     result$cluster = result$result+1
     k = max(result$cluster)
