@@ -73,18 +73,22 @@ gaterSVM = function(x, y, m, c = 1, max.iter, hidden = 5, learningrate = 0.01, .
       sub.data = data.frame(y = as.factor(y[sub.ind[[i]]]), x = x[sub.ind[[i]],])
       BBmisc::suppressAll({
         #expert[[i]] = e1071::svm(x = x[sub.ind[[i]],], y = as.factor(y[sub.ind[[i]]]))
-        #expert[[i]] = e1071::svm(y~., data = sub.data,)
+        #expert[[i]] = e1071::svm(y~., data = sub.data, probability = TRUE)
         expert[[i]] = glm(y~., data = sub.data, family = binomial)
       })
       S[,i] = predict(expert[[i]], all.data)
+      cat('Finish',i,'th expert.\r')
+      #pred = e1071:::predict.svm(expert[[i]], all.data, probability = TRUE)
+      #S[,i] = attr(pred, 'probabilities')[,1]
     }
+    cat('\n')
     # S = 2*S-3
     
     # Train weight
     gater.model = gater(x = x, y = y, S = S, hidden = hidden, 
                         learningrate = learningrate, ...)
     W = predict(gater.model, x)
-    
+    cat('Finish gater training.\n')
     # Re-arrange vectors
     sub.assign = rep(0,n)
     sub.num = rep(0, m)

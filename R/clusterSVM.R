@@ -161,6 +161,7 @@ clusterSVM = function(x, y, cluster.label = NULL, lambda = 1, sparse = TRUE,
                             cluster.fun = cluster.fun)
   cluster.svm.result = structure(cluster.svm.result, class = 'clusterSVM')
   
+  validation.time = NULL
   if (!is.null(valid.x)) {
     time.point = proc.time()
     
