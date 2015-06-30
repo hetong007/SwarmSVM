@@ -436,7 +436,7 @@ function (x,
     if (cret$error != empty_string)
         stop(paste(cret$error, "!", sep=""))
 
-    cret$index <- cret$index[1:cret$nr]
+      cret$index <- cret$index[1:cret$nr]
 
     ret <- list (
                  call     = match.call(),
@@ -493,11 +493,15 @@ function (x,
     class (ret) <- "alphasvm"
 
     if (fitted) {
-        ret$fitted <- na.action(predict(ret, xhold,
-                                        decision.values = TRUE))
-        ret$decision.values <- attr(ret$fitted, "decision.values")
-        attr(ret$fitted, "decision.values") <- NULL
-        if (type > 1) ret$residuals <- y - ret$fitted
+        if (!is.null(ret$coefs)) {
+          ret$fitted <- na.action(predict(ret, xhold,
+                                          decision.values = TRUE))
+          ret$decision.values <- attr(ret$fitted, "decision.values")
+          attr(ret$fitted, "decision.values") <- NULL
+          if (type > 1) ret$residuals <- y - ret$fitted
+        } else {
+          ret$fitted = y
+        }
     }
 
     ret
@@ -513,8 +517,10 @@ function (object, newdata,
     if (missing(newdata))
         return(fitted(object))
 
-    if (object$tot.nSV < 1)
-        stop("Model is empty!")
+    if (object$tot.nSV < 1) {
+        #stop("Model is empty!")
+      return(object$fitted)
+    }
 
 
     if(inherits(newdata, "Matrix")) {

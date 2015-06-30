@@ -110,7 +110,7 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
       ind = which(cluster.label == clst)
       if (length(ind)>1) {
         # train the svm with given support vectors
-        if (length(unique(y[ind]))>1) {
+        #if (length(unique(y[ind]))>1) {
           if (lvl == max.levels) {
             BBmisc::suppressAll({
               svm.model = alphasvm(x = x[ind,], y = y[ind], kernel = svm.kernel, ...)
@@ -121,15 +121,17 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
                             alpha = alpha[ind,], ...) 
             })
           }
-        } else {
-          cat('one!\n')
-          class_rank = which(unique(y[ind])==levels(y))
-          svm.model = oneclass.svm(x[ind,], num.lvls, class_rank)
-        }
+        #} else {
+        #  cat('one!\n')
+        #  class_rank = which(unique(y[ind])==levels(y))
+        #  svm.model = oneclass.svm(x[ind,], num.lvls, class_rank)
+        #}
         svm.models[[clst]] = svm.model
         sv.ind = ind[svm.model$index]
-        new.support[sv.ind] = TRUE
-        new.alpha[sv.ind,] = svm.model$coefs
+        if (length(sv.ind)>0) {
+          new.support[sv.ind] = TRUE
+          new.alpha[sv.ind,] = svm.model$coefs
+        }
       }
     }
     support = which(new.support)
