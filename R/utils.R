@@ -94,7 +94,7 @@ oneclass.svm = function(x, nclass, class_rank) {
   n = nrow(x)
   y = sample(nclass, n, replace = TRUE)
   y = as.factor(y)
-  model = svm(x, y, scale = FALSE)
+  model = alphasvm(x, y, scale = FALSE)
   model$index = 1:n
   model$SV = x
   model$tot.nSV = n

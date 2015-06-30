@@ -1,6 +1,6 @@
-#' Support Vector Machines 
+#' Support Vector Machines taking initial alpha values
 #' 
-#' svm is used to train a support vector machine. It can be used to carry out general regression and classification (of nu and epsilon-type), as well as density-estimation. A formula interface is provided. 
+#' alphasvm is used to train a support vector machine. It can be used to carry out general regression and classification (of nu and epsilon-type), as well as density-estimation. A formula interface is provided. 
 #' 
 #' @param formula a symbolic description of the model to be fit.
 #' @param data an optional data frame containing the variables in the model. By default the variables are taken from the environment which 'svm' is called from.
@@ -108,27 +108,27 @@
 #' attach(iris)
 #' 
 #' # default with factor response:
-#' model = svm(Species ~ ., data = iris)
+#' model = alphasvm(Species ~ ., data = iris)
 #' 
 #' # get new alpha
 #' new.alpha = matrix(0, nrow(iris),2)
 #' new.alpha[model$index,] = model$coefs
 #' 
-#' model2 = svm(Species ~ ., data = iris, alpha = new.alpha)
+#' model2 = alphasvm(Species ~ ., data = iris, alpha = new.alpha)
 #' 
-#' @rdname svm
+#' @rdname alphasvm
 #' 
 #' 
 #' @export
 #' 
-svm <-
+alphasvm <-
 function (x, ...)
-    UseMethod ("svm")
+    UseMethod ("alphasvm")
 #'
-#' @rdname svm
+#' @rdname alphasvm
 #' @export
 #' 
-svm.formula <-
+alphasvm.formula <-
 function (formula, data = NULL, ..., subset, na.action = na.omit, scale = TRUE)
 {
     call <- match.call()
@@ -157,21 +157,21 @@ function (formula, data = NULL, ..., subset, na.action = na.omit, scale = TRUE)
                          )
         scale <- !attr(x, "assign") %in% remove
     }
-    ret <- svm.default (x, y, scale = scale, ..., na.action = na.action)
+    ret <- alphasvm.default (x, y, scale = scale, ..., na.action = na.action)
     ret$call <- call
-    ret$call[[1]] <- as.name("svm")
+    ret$call[[1]] <- as.name("alphasvm")
     ret$terms <- Terms
     if (!is.null(attr(m, "na.action")))
         ret$na.action <- attr(m, "na.action")
-    class(ret) <- c("svm.formula", class(ret))
+    class(ret) <- c("alphasvm.formula", class(ret))
     return (ret)
 }
 
 #' 
-#' @rdname svm
+#' @rdname alphasvm
 #' @export
 #' 
-svm.default <-
+alphasvm.default <-
 function (x,
           y           = NULL,
           scale       = TRUE,
@@ -228,19 +228,21 @@ function (x,
         stop("Only classification missions with no more than 16 target classes are allowed.")
     }
 
-    ## determine model type
+    # determine model type
     if (is.null(type)) type <-
         if (is.null(y)) "one-classification"
         else if (is.factor(y)) "C-classification"
         else "eps-regression"
 
-    if (is.factor(y) && length(levels(y))==1)
-        type = "one-classification"
-    
+    #     if (is.factor(y) && length(levels(y))==1)
+    #         type = "one-classification"
+        
+    #type = "C-classification"
     type <- pmatch(type, c("C-classification",
                            "nu-classification"), 99) - 1
 
     if (type > 10) stop("wrong type specification!")
+    
 
     kernel <- pmatch(kernel, c("linear",
                                "polynomial",
@@ -358,7 +360,7 @@ function (x,
         }
 
     nclass <- 2
-    if (type < 2) nclass <- length(lev)
+    # if (type < 2) nclass <- length(lev)
 
     if (type > 1 && length(class.weights) > 0) {
         class.weights <- NULL
@@ -488,7 +490,7 @@ function (x,
             ret$tot.accuracy <- cret$ctotal1;
         }
 
-    class (ret) <- "svm"
+    class (ret) <- "alphasvm"
 
     if (fitted) {
         ret$fitted <- na.action(predict(ret, xhold,
@@ -501,7 +503,7 @@ function (x,
     ret
 }
 
-predict.svm <-
+predict.alphasvm <-
 function (object, newdata,
           decision.values = FALSE,
           probability = FALSE,
@@ -540,7 +542,7 @@ function (object, newdata,
     else
         1:nrow(newdata)
     if (!object$sparse) {
-        if (inherits(object, "svm.formula")) {
+        if (inherits(object, "alphasvm.formula")) {
             if(is.null(colnames(newdata)))
                 colnames(newdata) <- colnames(object$SV)
             newdata <- na.action(newdata)
@@ -651,7 +653,7 @@ function (object, newdata,
     ret2
 }
 
-print.svm <-
+print.alphasvm <-
 function (x, ...)
 {
     cat("\nCall:", deparse(x$call, 0.8 * getOption("width")), "\n", sep="\n")
@@ -685,11 +687,11 @@ function (x, ...)
 
 }
 
-summary.svm <-
+summary.alphasvm <-
 function(object, ...)
-    structure(object, class="summary.svm")
+    structure(object, class="summary.alphasvm")
 
-print.summary.svm <-
+print.summary.alphasvm <-
 function (x, ...)
 {
     print.svm(x)
@@ -729,7 +731,7 @@ function(x, center = TRUE, scale = TRUE)
     x
 }
 
-plot.svm <-
+plot.alphasvm <-
 function(x, data, formula = NULL, fill = TRUE,
          grid = 50, slice = list(), symbolPalette = palette(),
          svSymbol = "x", dataSymbol = "o", ...)
@@ -805,7 +807,7 @@ function(x, data, formula = NULL, fill = TRUE,
     }
 }
 
-write.svm <-
+write.alphasvm <-
 function (object, svm.file="Rdata.svm", scale.file = "Rdata.scale",
           yscale.file = "Rdata.yscale")
 {

@@ -113,11 +113,11 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
         if (length(unique(y[ind]))>1) {
           if (lvl == max.levels) {
             BBmisc::suppressAll({
-              svm.model = svm(x = x[ind,], y = y[ind], kernel = svm.kernel, ...)
+              svm.model = alphasvm(x = x[ind,], y = y[ind], kernel = svm.kernel, ...)
             })
           } else {
             BBmisc::suppressAll({
-              svm.model = svm(x = x[ind,], y = y[ind], kernel = svm.kernel, 
+              svm.model = alphasvm(x = x[ind,], y = y[ind], kernel = svm.kernel, 
                             alpha = alpha[ind,], ...) 
             })
           }
@@ -141,7 +141,7 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
     # Refine
     ind = support
     BBmisc::suppressAll({
-      svm.models = svm(x = x[ind,], y = y[ind], kernel = svm.kernel, 
+      svm.models = alphasvm(x = x[ind,], y = y[ind], kernel = svm.kernel, 
                        alpha = alpha[ind,], ...)
     })
     support = ind[svm.models$index]
@@ -150,7 +150,7 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
     
     # Final
     BBmisc::suppressAll({
-      svm.models = svm(x = x, y = y, kernel = svm.kernel, alpha = alpha, ...)
+      svm.models = alphasvm(x = x, y = y, kernel = svm.kernel, alpha = alpha, ...)
     })
   }
   # Result structure
