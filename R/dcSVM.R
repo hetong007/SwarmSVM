@@ -52,7 +52,8 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
   sample.cluster.ind[,1] = 1
   cluster.ind = matrix(0, n, max.levels+1)
   cluster.ind[,1] = 1
-  min.cluster = ceiling(m/(k^max.levels)*5)
+  #min.cluster = ceiling(m/(k^max.levels)*5)
+  min.cluster = 100
   for (i in 1:max.levels) {
     num.clust = max(sample.cluster.ind[,i])
     center.list = list()
@@ -95,7 +96,8 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
       break
     }
   }
-  
+  if (max.levels<1)
+    stop('no cluster applied.')
   for (lvl in max.levels:1) {
     # cluster.label = kern.predict(kkmeans.res, x)
     # cluster.label = cluster.fun(x, kmeans.res$centers)$cluster
