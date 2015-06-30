@@ -15,7 +15,7 @@ alphasvm(x, ...)
   kernel = "radial", degree = 3, gamma = if (is.vector(x)) 1 else
   1/ncol(x), coef0 = 0, cost = 1, nu = 0.5, class.weights = NULL,
   cachesize = 40, tolerance = 0.001, epsilon = 0.1, shrinking = TRUE,
-  cross = 0, probability = FALSE, fitted = TRUE, alpha = NULL, ...,
+  cross = 0, probability = FALSE, fitted = FALSE, alpha = NULL, ...,
   subset, na.action = na.omit)
 }
 \arguments{

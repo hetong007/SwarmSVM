@@ -189,7 +189,7 @@ function (x,
           shrinking   = TRUE,
           cross       = 0,
           probability = FALSE,
-          fitted      = TRUE,
+          fitted      = FALSE,
           alpha       = NULL,
           ...,
           subset,
@@ -700,7 +700,7 @@ function(object, ...)
 print.summary.alphasvm <-
 function (x, ...)
 {
-    print.svm(x)
+    print.alphasvm(x)
     if (x$type<2) {
         cat(" (", x$nSV, ")\n\n")
         cat("\nNumber of Classes: ", x$nclasses, "\n\n")
