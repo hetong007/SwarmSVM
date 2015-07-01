@@ -77,16 +77,14 @@ save(mnist, file='mnist.RData',compress = 'xz')
 ########################
 
 # ijcnn1
-download.file('http://www.csie.ntu.edu.tw/%7Ecjlin/libsvmtools/datasets/binary/ijcnn1.bz2',
-              'ijcnn1.bz2')
-download.file('http://www.csie.ntu.edu.tw/%7Ecjlin/libsvmtools/datasets/binary/ijcnn1.t.bz2',
-              'ijcnn1.t.bz2')
-ijcnn1 = read.libsvm(bzfile('ijcnn1.bz2'))
-ijcnn1.t = read.libsvm(bzfile('ijcnn1.t.bz2'))
-ijcnn1[,-1] = rownorm(ijcnn1[,-1])
-ijcnn1.t[,-1] = rownorm(ijcnn1.t[,-1])
+download.file('http://www.sfu.ca/~hetongh/data/ijcnn1.train',
+              'ijcnn1.train')
+download.file('http://www.sfu.ca/~hetongh/data/ijcnn1.t',
+              'ijcnn1.t')
+ijcnn1 = read.libsvm('ijcnn1.train')
+ijcnn1.t = read.libsvm('ijcnn1.t')
 ijcnn1 = list(ijcnn1,ijcnn1.t)
-save(ijcnn1,file='ijcnn1.l1.RData',compress = 'xz')
+save(ijcnn1,file='ijcnn1.dcsvm.RData',compress = 'xz')
 
 # covtype.binary
 download.file('http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary/covtype.libsvm.binary.scale.bz2',

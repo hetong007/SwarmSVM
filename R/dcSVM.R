@@ -21,7 +21,7 @@
 #' svmguide1 = as.matrix(svmguide1[[1]])
 #' dcsvm.model = dcSVM(x = svmguide1[,-1], y = svmguide1[,1],
 #'                     k = 4, max.levels = 4, seed = 0,
-#'                     kernel = 3,early = 0, m = 500)
+#'                     kernel = 3,early = 0, m = 800)
 #' preds = predict(dcsvm.model, svmguide1.t[,-1])
 #' 
 #' @export
@@ -102,6 +102,7 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
     # cluster.label = kern.predict(kkmeans.res, x)
     # cluster.label = cluster.fun(x, kmeans.res$centers)$cluster
     cluster.label = cluster.ind[,lvl+1]
+    cat('Begin level',lvl,'\n')
     
     # Train svm for each cluster
     new.alpha = matrix(0,n,num.lvls-1)
@@ -135,6 +136,7 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
           new.alpha[sv.ind,] = svm.model$coefs
         }
       }
+      cat(clst,'\r')
     }
     support = which(new.support)
     alpha = new.alpha
@@ -191,13 +193,13 @@ predict.dcSVM = function(object, newdata, ...) {
   
   # Assign label
   if (object$early > 0) {
-    new.result = object$cluster.fun(newdata,object$kmeans.res)
+    new.result = object$cluster.fun(newdata,object$kmeans.res$centers)
     new.result = new.result$cluster
     k = max(new.result)
     preds = rep(0, nrow(newdata))
     for (i in 1:k) {
       ind = which(new.result == i)
-      preds[ind] = predict(object$svm[[i]], newdata[ind,], ...)
+      preds[ind] = predict.alphasvm(object$svm[[i]], newdata[ind,], ...)
     }
   } else {
     preds = predict(object$svm, newdata, ...)

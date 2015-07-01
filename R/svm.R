@@ -507,6 +507,9 @@ function (x,
     ret
 }
 
+#' 
+#' @export
+#' 
 predict.alphasvm <-
 function (object, newdata,
           decision.values = FALSE,
