@@ -435,8 +435,11 @@ function (x,
 
     if (cret$error != empty_string)
         stop(paste(cret$error, "!", sep=""))
-
+    if (!is.null(cret$nr) && !is.na(cret$nr)) {
       cret$index <- cret$index[1:cret$nr]
+    } else {
+      cret$index = NULL
+    }
 
     ret <- list (
                  call     = match.call(),
