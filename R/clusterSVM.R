@@ -13,7 +13,7 @@ csvmTransform = function(x, lambda, cluster.label, sparse = TRUE) {
   m = ncol(x)
   k = max(cluster.label)
   
-  if (! (lambda>0))
+  if (!(lambda>0))
     stop("Lambda should be strictly larger than zero.")
   
   if (k == 1) {
