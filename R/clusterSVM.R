@@ -166,6 +166,7 @@ clusterSVM = function(x, y, cluster.label = NULL, lambda = 1, sparse = TRUE,
   time.point = proc.time()
   
   # Training
+  # tmp = unique(y)
   svm.result = LiblineaR(data = tilde.x, target = y, type = type, cost = cost, 
                          epsilon = epsilon, bias = bias,
                          wi = wi, cross = 0, verbose = (verbose>=2))
