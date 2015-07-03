@@ -130,13 +130,13 @@ data(iris)
 attach(iris)
 
 # default with factor response:
-model = alphasvm(Species ~ ., data = iris)
+# model = alphasvm(Species ~ ., data = iris)
 
 # get new alpha
-new.alpha = matrix(0, nrow(iris),2)
-new.alpha[model$index,] = model$coefs
+# new.alpha = matrix(0, nrow(iris),2)
+# new.alpha[model$index,] = model$coefs
 
-model2 = alphasvm(Species ~ ., data = iris, alpha = new.alpha)
+# model2 = alphasvm(Species ~ ., data = iris, alpha = new.alpha)
 }
 \author{
 Tong He (based on package \code{e1071} by David Meyer and C/C++ code by Cho-Jui Hsieh in Divide-and-Conquer kernel SVM (DC-SVM) )

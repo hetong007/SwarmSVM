@@ -4,7 +4,7 @@
 \alias{predict.alphasvm}
 \title{Prediction function for an alphasvm object}
 \usage{
-predict.alphasvm(object, newdata, decision.values = FALSE,
+\method{predict}{alphasvm}(object, newdata, decision.values = FALSE,
   probability = FALSE, ..., na.action = na.omit)
 }
 \arguments{
