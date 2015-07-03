@@ -510,6 +510,8 @@ function (x,
     ret
 }
 
+#' Prediction function for an alphasvm object
+#' 
 #' 
 #' @export
 #' 

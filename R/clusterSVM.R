@@ -12,6 +12,10 @@ csvmTransform = function(x, lambda, cluster.label, sparse = TRUE) {
   n = nrow(x)
   m = ncol(x)
   k = max(cluster.label)
+  
+  if (! (lambda>0))
+    stop("Lambda should be strictly larger than zero.")
+  
   if (k == 1) {
     warning('Only one cluster for the data, no transform is performed.')
     if (sparse) {
@@ -85,21 +89,29 @@ csvmTransform = function(x, lambda, cluster.label, sparse = TRUE) {
 #'     as long as the resulting list contains two fields named as \code{cluster} and \code{centers}.
 #' @param ... additional parameters passing to \code{cluster.fun}.
 #' 
+#' @return 
+#' \itemize{
+#'    \item \code{svm} the svm object from \code{LiblineaR}
+#'    \item \code{lambda} the parameter used.
+#'    \item \code{sparse} whether the data is sparsely transformed
+#'    \item \code{label} the clustering label for training data
+#'    \item \code{centers} the clustering centers from teh training dataset
+#'    \item \code{cluster.fun} the function used for clustering
+#'    \item \code{time} a list object recording the time consumption for each steps.
+#' }
+#' 
 #' @examples
-#' data(iris)
-#' x=iris[,1:4]
-#' y=factor(iris[,5])
-#' train=sample(1:dim(iris)[1],100)
+#' data(svmguide1)
+#' svmguide1.t = svmguide1[[2]]
+#' svmguide1 = svmguide1[[1]]
 #' 
-#' xTrain=x[train,]
-#' xTest=x[-train,]
-#' yTrain=y[train]
-#' yTest=y[-train]
+#' csvm.obj = clusterSVM(x = svmguide1[,-1], y = svmguide1[,1], lambda = 1,
+#'                       centers = 8, seed = 512, verbose = 0,
+#'                       valid.x = svmguide1.t[,-1],valid.y = svmguide1.t[,1])
+#' csvm.pred = csvm.obj$valid.pred
 #' 
-#' csvm.obj = clusterSVM(x = xTrain, y = yTrain, sparse = FALSE,
-#'     centers = 2, iter.max = 1000, 
-#'     valid.x = xTest,valid.y = yTest)
-#' pred = predict(csvm.obj, xTest)
+#' # Or predict from the data
+#' pred = predict(csvm.obj, svmguide1.t[,-1])
 #' 
 #' @export
 #' 
@@ -109,10 +121,16 @@ clusterSVM = function(x, y, cluster.label = NULL, lambda = 1, sparse = TRUE,
                       bias = TRUE, wi = NULL, verbose = 1, seed = NULL,
                       cluster.fun = cluster.fun.mlpack, ...) {
   
-  assertInt(lambda, lower = 0)
+  # Parameter check
+  assertNumber(lambda, lower = 0)
+  assertNumber(cost, lower = 0)
+  if (!is.null(epsilon)) assertNumber(epsilon, lower = 0)
+  assertInt(type, lower = 0, upper = 7)
+  assertInt(verbose, lower = 0, upper = 2)
+  
   if (!is.null(seed))
     set.seed(seed)
-  
+  # Clustering 
   total.time.point = proc.time()
   time.point = proc.time()
   if (is.null(cluster.label)) {
@@ -140,14 +158,16 @@ clusterSVM = function(x, y, cluster.label = NULL, lambda = 1, sparse = TRUE,
   sendMsg('Time for Clustering: ',clustering.time, ' secs\n', verbose = verbose)
   time.point = proc.time()
   
+  # Transformation
   tilde.x = csvmTransform(x, lambda, cluster.label, sparse = sparse)
   
   transform.time = (proc.time()-time.point)[3]
   sendMsg('Time for Transforming: ',transform.time, ' secs\n', verbose = verbose)
   time.point = proc.time()
   
+  # Training
   svm.result = LiblineaR(data = tilde.x, target = y, type = type, cost = cost, 
-                         epsilon = epsilon, svr_eps = svr.eps, bias = bias,
+                         epsilon = epsilon, bias = bias,
                          wi = wi, cross = 0, verbose = (verbose>=2))
   
   liblinear.time = (proc.time()-time.point)[3]
@@ -161,6 +181,7 @@ clusterSVM = function(x, y, cluster.label = NULL, lambda = 1, sparse = TRUE,
                             cluster.fun = cluster.fun)
   cluster.svm.result = structure(cluster.svm.result, class = 'clusterSVM')
   
+  # Validation
   validation.time = NULL
   if (!is.null(valid.x)) {
     time.point = proc.time()

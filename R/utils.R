@@ -34,6 +34,9 @@ eucliDist= function(x, centers) {
 #' @param ... arguments for future use.
 #' 
 cluster.fun.mlpack = function(x, centers, ...) {
+  
+  assertInt(centers, lower = 1, upper = nrow(x))
+  
   if (is.matrix(centers)) {
     result = list()
     result$centers = centers

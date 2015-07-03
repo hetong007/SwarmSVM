@@ -211,8 +211,11 @@ repeatSVM = function(train, valid, rep.len = 10) {
   set.seed(1024)
   for (gm in c(0.01,0.1,1,10,100)) {
     for (cst in c(0.01,0.1,1,10,100)) {
+      cat('Begin cv on',gm,'\t',cst)
+      tp = proc.time()
       temp.score = svm.cv(x = train[,-1], y = train[,1], nfold = 5, 
                           gamma = gm, cost = cst, kernel = "radial")
+      cat('\t\tTime:',(proc.time()-tp)[3],'\t\tScore:',temp.score,'\n')
       if (temp.score>best.score) {
         best.score = temp.score
         best.gamma = gm

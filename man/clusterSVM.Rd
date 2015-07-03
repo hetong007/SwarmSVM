@@ -60,23 +60,31 @@ as long as the resulting list contains two fields named as \code{cluster} and \c
 
 \item{...}{additional parameters passing to \code{cluster.fun}.}
 }
+\value{
+\itemize{
+   \item \code{svm} the svm object from \code{LiblineaR}
+   \item \code{lambda} the parameter used.
+   \item \code{sparse} whether the data is sparsely transformed
+   \item \code{label} the clustering label for training data
+   \item \code{centers} the clustering centers from teh training dataset
+   \item \code{cluster.fun} the function used for clustering
+   \item \code{time} a list object recording the time consumption for each steps.
+}
+}
 \description{
 Implementation of Gu, Quanquan, and Jiawei Han. "Clustered support vector machines."
 }
 \examples{
-data(iris)
-x=iris[,1:4]
-y=factor(iris[,5])
-train=sample(1:dim(iris)[1],100)
+data(svmguide1)
+svmguide1.t = svmguide1[[2]]
+svmguide1 = svmguide1[[1]]
 
-xTrain=x[train,]
-xTest=x[-train,]
-yTrain=y[train]
-yTest=y[-train]
+csvm.obj = clusterSVM(x = svmguide1[,-1], y = svmguide1[,1], lambda = 1,
+                      centers = 8, seed = 512, verbose = 0,
+                      valid.x = svmguide1.t[,-1],valid.y = svmguide1.t[,1])
+csvm.pred = csvm.obj$valid.pred
 
-csvm.obj = clusterSVM(x = xTrain, y = yTrain, sparse = FALSE,
-    centers = 2, iter.max = 1000,
-    valid.x = xTest,valid.y = yTest)
-pred = predict(csvm.obj, xTest)
+# Or predict from the data
+pred = predict(csvm.obj, svmguide1.t[,-1])
 }
 
