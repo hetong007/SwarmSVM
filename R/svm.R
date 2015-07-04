@@ -107,6 +107,7 @@
 #' data(iris)
 #' attach(iris)
 #' 
+#' iris = iris[1:100,]
 #' # default with factor response:
 #' model = alphasvm(Species ~ ., data = iris)
 #' 
