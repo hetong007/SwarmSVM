@@ -67,7 +67,8 @@ repeatClusterSVM = function(train, valid, rep.len = 10) {
   set.seed(1024)
   for (lmd in c(1,5,10,20,50,100)) {
     temp.score = clusterSVM.cv(x = train[,-1], y = train[,1], lambda = lmd,
-                               centers = 8, iter.max = 1000, verbose = 0)
+                               centers = 8, iter.max = 1000, verbose = 0, 
+                               cluster.method = "mlKmeans")
     if (temp.score>best.score) {
       best.score = temp.score
       best.lambda = lmd
@@ -80,7 +81,8 @@ repeatClusterSVM = function(train, valid, rep.len = 10) {
     csvm.obj = SwarmSVM::clusterSVM(x = train[,-1], y = train[,1], seed = i, 
                                     valid.x = valid[,-1], valid.y = valid[,1], 
                                     centers = 8, iter.max = 1000, verbose = 0,
-                                    lambda = best.lambda)
+                                    lambda = best.lambda, 
+                                    cluster.method = "mlKmeans")
     score[i] = csvm.obj$valid.score
     total.time[i] = csvm.obj$time$total.time
   }
