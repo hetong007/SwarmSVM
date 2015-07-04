@@ -129,6 +129,7 @@ For multiclass-classification with k levels, k>2, \code{libsvm} uses the
 data(iris)
 attach(iris)
 
+iris = iris[1:100,]
 # default with factor response:
 # model = alphasvm(Species ~ ., data = iris)
 

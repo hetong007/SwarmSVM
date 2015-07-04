@@ -1,15 +1,3 @@
-#' @importClassesFrom SparseM matrix.csr
-#' @importFrom SparseM t
-#' @import kernlab
-#' @importFrom RcppMLPACK mlKmeans
-#' @import Matrix
-#' @import LiblineaR
-#' @import methods
-#' @import checkmate
-#' @importFrom BBmisc suppressAll
-#' @useDynLib SwarmSVM
-NULL
-
 #' Euclidean Distance calculation
 #' 
 #' @param x the data matrix
@@ -100,7 +88,7 @@ cluster.fun.kkmeans = function(x, centers, ...) {
   # x = as.matrix(x)
   assertMatrix(x)
   # due to a wierd namespace problem i add this line
-  BBmisc::suppressAll({tmp = kernlab::kkmeans(as.matrix(iris[,-5]), centers, ...)})
+  tmp = kernlab::kkmeans(as.matrix(iris[,-5]), centers, ...)
   kernl.result = kernlab::kkmeans(x, centers, ...)
   result = list()
   result$cluster = kernl.result@.Data
