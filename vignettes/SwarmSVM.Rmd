@@ -136,7 +136,7 @@ Here we use the kernel kmeans from `kernlab`. Once we have defined the algorithm
 
 ```{r}
 csvm.obj = clusterSVM(x = svmguide1[,-1], y = svmguide1[,1], seed = 1,
-                      cluster.FUN = cluster.fun, centers = 8, 
+                      cluster.fun = cluster.fun, centers = 8, 
                       valid.x = svmguide1.t[,-1],valid.y = svmguide1.t[,1])
 csvm.obj$valid.score
 ```

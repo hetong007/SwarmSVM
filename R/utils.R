@@ -1,7 +1,6 @@
 #' @importClassesFrom SparseM matrix.csr
 #' @importFrom SparseM t
-#' @importFrom kernlab kkmeans
-#' @importFrom kernlab kernelMatrix
+#' @import kernlab
 #' @importFrom RcppMLPACK mlKmeans
 #' @import Matrix
 #' @import LiblineaR
@@ -17,11 +16,33 @@ NULL
 #' @param centers the matrix of centers
 #' 
 eucliDist= function(x, centers) {
+  assertInt(nrow(x), lower = 1)
+  assertInt(ncol(x), lower = 1)
+  assertMatrix(centers, ncols = ncol(x))
   if (nrow(centers)>1) {
     result = apply(centers, 1, function(C) colSums( (t(x)-C)^2 ))
   } else {
     result = colSums((t(x)-as.vector(centers))^2)
+    result = matrix(result, length(result), 1)
   }
+  assertMatrix(result, nrows = nrow(x), ncols = nrow(centers))
+  return(result)
+}
+
+#' Euclidean Distance based clustering prediction
+#' 
+#' @param x the data matrix
+#' @param cluster.object the matrix of centers
+#' 
+kmeans.predict = function(x, cluster.object) {
+  assertMatrix(x)
+  centers = cluster.object$centers
+  assertMatrix(centers)
+  
+  euclidean.dist = eucliDist(x, centers)
+  result = list()
+  result = max.col(-euclidean.dist)
+  assertInteger(result, lower = 1, upper = nrow(centers), len = nrow(x))
   return(result)
 }
 
@@ -34,39 +55,34 @@ eucliDist= function(x, centers) {
 #' @param ... arguments for future use.
 #' 
 cluster.fun.mlpack = function(x, centers, ...) {
+
+  assertInt(nrow(x), lower = 1)
+  assertInt(ncol(x), lower = 1)
+  assertInt(centers, lower = 1, upper = nrow(x))
   
-  if (testInt(centers)) {
-    assertInt(centers, lower = 1, upper = nrow(x))
-  } else {
-    assertMatrix(centers)
+  BBmisc::suppressAll({
+    result = RcppMLPACK::mlKmeans(t(as.matrix(x)),centers)
+  })
+  result$cluster = result$result+1
+  result$cluster= as.integer(result$cluster)
+  k = max(result$cluster)
+  cluster.centers = matrix(0,k,ncol(x))
+  for (i in 1:k) {
+    index = which(result$cluster == i)
+    cluster.centers[i,] = colMeans(x[index,,drop = FALSE])
   }
   
-  if (is.matrix(centers)) {
-    result = list()
-    result$centers = centers
-    k = nrow(centers)
-    if (k==1) {
-      result$cluster = rep(1,nrow(x))
-    } else {
-      dist = eucliDist(x, centers)
-      result$cluster = max.col(-dist)
-    }
-  } else {
-    BBmisc::suppressAll({
-      result = RcppMLPACK::mlKmeans(t(as.matrix(x)),centers[1])
-    })
-    result$cluster = result$result+1
-    k = max(result$cluster)
-    cluster.centers = matrix(0,k,ncol(x))
-    for (i in 1:k) {
-      index = which(result$cluster == i)
-      cluster.centers[i,] = colMeans(x[index,,drop = FALSE])
-    }
-    result$centers = cluster.centers
-    result$clusters = NULL
-    result$result = NULL
-  }
+  result$centers = cluster.centers
+  result$clusters = NULL
+  result$result = NULL
+  assertMatrix(result$centers, min.rows = 1, ncols = ncol(x))
+  assertInteger(result$cluster, lower = 1, upper = nrow(result$centers), 
+                len = nrow(x))
   return(result)
+}
+
+cluster.predict.mlpack = function(x, cluster.object) {
+  return(kmeans.predict(x, cluster.object))
 }
 
 sendMsg = function(..., verbose) {
@@ -74,12 +90,34 @@ sendMsg = function(..., verbose) {
     message(...)
 }
 
+#' Wrapper function for kernal kmeans
+#' 
+#' @param x the input data
+#' @param centers the number of centers
+#' @param ... other parameters passing to \code{kernlab::kkmeans}
+#' 
+cluster.fun.kkmeans = function(x, centers, ...) {
+  x = as.matrix(x)
+  # due to a wierd namespace problem i add this line
+  BBmisc::suppressAll({tmp = kernlab::kkmeans(as.matrix(iris[,-5]), centers, ...)})
+  kernl.result = kernlab::kkmeans(x, centers, ...)
+  result = list()
+  result$cluster = kernl.result@.Data
+  result$centers = kernl.result@centers
+  result$kkmeans.res = kernl.result
+  
+  return(result)
+}
+
 #' Predict function for kernel kmeans
 #' 
-#' @param kkmeans.res The result object from \code{kernlab::kkmeans}
 #' @param x The data to make prediction
+#' @param cluster.object The result object from \code{kernlab::kkmeans}
 #' 
-kern.predict = function(kkmeans.res, x) {
+cluster.predict.kkmeans = function(x, cluster.object) {
+  kkmeans.res = cluster.object$kkmeans.res
+  assertClass(kkmeans.res,'specc')
+  
   kern.fun = kkmeans.res@kernelf@.Data
   center.mat = kkmeans.res@centers
   kern.mat = kernlab::kernelMatrix(kern.fun, x, center.mat)
@@ -87,11 +125,14 @@ kern.predict = function(kkmeans.res, x) {
                              kkmeans.res@centers,
                              kkmeans.res@centers))
   dist.mat = t(kern.c-2*t(kern.mat))
+
+  result = list()
   result = max.col(-dist.mat)
+  assertInteger(result, lower = 1, upper = nrow(center.mat), len = nrow(x))
   return(result)
 }
 
-#' DIrectly assign alpha to svm 
+#' Directly assign alpha to svm 
 #' 
 #' @param x the data matrix
 #' @param nclass the total number of classes

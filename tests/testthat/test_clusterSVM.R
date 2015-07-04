@@ -46,6 +46,23 @@ test_that("Error Trigger",{
   })
 })
 
+test_that("Switch Clustering function",{
+  csvm.obj.1 = clusterSVM(x = svmguide1[,-1], y = svmguide1[,1], lambda = 1,
+                          centers = 8, seed = 512, verbose = 0, 
+                          valid.x = svmguide1.t[,-1],valid.y = svmguide1.t[,1],
+                          cluster.method = "kmeans")
+  csvm.obj.2 = clusterSVM(x = svmguide1[,-1], y = svmguide1[,1], lambda = 1,
+                          centers = 8, seed = 512, verbose = 0, 
+                          valid.x = svmguide1.t[,-1],valid.y = svmguide1.t[,1],
+                          cluster.method = "mlKmeans")
+  csvm.obj.3 = clusterSVM(x = svmguide1[,-1], y = svmguide1[,1], lambda = 1,
+                          centers = 8, seed = 512, verbose = 0, 
+                          valid.x = svmguide1.t[,-1],valid.y = svmguide1.t[,1],
+                          cluster.method = "kernkmeans")
+  expect_true(csvm.obj.1$time$total.time>csvm.obj.2$time$total.time)
+  expect_true(csvm.obj.3$time$total.time>csvm.obj.1$time$total.time)
+})
+
 test_that("Performance",{
   liblinear.obj = LiblineaR::LiblineaR(data = svmguide1[,-1], target = svmguide1[,1], 
                                        type = 1, verbose = F)
@@ -66,11 +83,11 @@ test_that("Performance",{
                           valid.x = svmguide1.t[,-1],valid.y = svmguide1.t[,1])
   })
   csvm.score = csvm.obj$valid.score
-  expect_equal(csvm.score, liblinear.score, tolerance = 0.01)
+  expect_equal(csvm.score, liblinear.score)
   
   # Multiclassification
-  csvm.obj = clusterSVM(x = iris[,-5], y = iris[,5], sparse = FALSE,
+  csvm.obj = clusterSVM(x = as.matrix(iris[,-5]), y = iris[,5], sparse = FALSE,
                         centers = 2, seed = 512, verbose = 0,
-                        valid.x = iris[,-5],valid.y = iris[,5])
+                        valid.x = as.matrix(iris[,-5]),valid.y = iris[,5])
   expect_true(csvm.obj$valid.score>0.97)
 })

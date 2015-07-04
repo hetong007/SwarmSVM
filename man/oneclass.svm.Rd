@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{oneclass.svm}
 \alias{oneclass.svm}
-\title{DIrectly assign alpha to svm}
+\title{Directly assign alpha to svm}
 \usage{
 oneclass.svm(x, nclass, class_rank)
 }
@@ -14,6 +14,6 @@ oneclass.svm(x, nclass, class_rank)
 \item{class_rank}{the rank of class that the input data matrix has}
 }
 \description{
-DIrectly assign alpha to svm
+Directly assign alpha to svm
 }
 

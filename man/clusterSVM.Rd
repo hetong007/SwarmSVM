@@ -4,10 +4,11 @@
 \alias{clusterSVM}
 \title{Clustered Support Vector Machine}
 \usage{
-clusterSVM(x, y, cluster.label = NULL, lambda = 1, sparse = TRUE,
-  valid.x = NULL, valid.y = NULL, valid.metric = NULL, type = 1,
-  cost = 1, epsilon = NULL, svr.eps = NULL, bias = TRUE, wi = NULL,
-  verbose = 1, seed = NULL, cluster.fun = cluster.fun.mlpack, ...)
+clusterSVM(x, y, centers, cluster.object = NULL, lambda = 1,
+  sparse = TRUE, valid.x = NULL, valid.y = NULL, valid.metric = NULL,
+  type = 1, cost = 1, epsilon = NULL, svr.eps = NULL, bias = TRUE,
+  wi = NULL, verbose = 1, seed = NULL, cluster.method = "kmeans",
+  cluster.fun = NULL, cluster.predict = NULL, ...)
 }
 \arguments{
 \item{x}{the nxp training data matrix. Could be a matrix or a sparse matrix object.}
@@ -17,7 +18,9 @@ For classification, the values correspond to class labels and can be a 1xn matri
 a simple vector or a factor. For regression, the values correspond to the values to predict,
 and can be a 1xn matrix or a simple vector.}
 
-\item{cluster.label}{an 1xn integer vector containing the cluster label of each sample of \code{x}}
+\item{centers}{an integer indicating the number of centers in clustering.}
+
+\item{cluster.object}{an object generated from \code{cluster.fun}, and can be passed to \code{cluster.predict}}
 
 \item{lambda}{the weight for the global l2-norm}
 
@@ -55,8 +58,19 @@ If set to 2, the running time ,validation score (if applicable) and the \code{Li
 
 \item{seed}{the random seed. Set it to \code{NULL} to randomize the model.}
 
-\item{cluster.fun}{set to \code{kmeans} by default. Customized function is acceptable,
-as long as the resulting list contains two fields named as \code{cluster} and \code{centers}.}
+\item{cluster.method}{The clusterign algorithm to use. Possible choices are
+\itemize{
+    \item "kmeans" Algorithm from \code{stats::kmeans}
+    \item "mlKmeans" Algorithm from \code{RcppMLPACK::mlKmeans}
+    \item "kernkmeans" Algorithm from \code{kernlab::kkmeans}
+}
+If \code{cluster.fun} and \code{cluster.predict} are provided, \code{cluster.method} doesn't work anymore.}
+
+\item{cluster.fun}{The function to train cluster labels for the data based on given number of centers.
+Customized function is acceptable, as long as the resulting list contains two fields named as \code{cluster} and \code{centers}.}
+
+\item{cluster.predict}{The function to predict cluster labels for the data based on trained object.
+Customized function is acceptable, as long as the resulting list contains two fields named as \code{cluster} and \code{centers}.}
 
 \item{...}{additional parameters passing to \code{cluster.fun}.}
 }
@@ -68,6 +82,8 @@ as long as the resulting list contains two fields named as \code{cluster} and \c
    \item \code{label} the clustering label for training data
    \item \code{centers} the clustering centers from teh training dataset
    \item \code{cluster.fun} the function used for clustering
+   \item \code{cluster.object} the object either
+   \item \code{cluster.predict} the function used for prediction on new data based on the object
    \item \code{time} a list object recording the time consumption for each steps.
 }
 }

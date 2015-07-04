@@ -4,12 +4,15 @@
 \alias{predict.clusterSVM}
 \title{Predictions with Clustered Support Vector Machines}
 \usage{
-\method{predict}{clusterSVM}(object, newdata, ...)
+\method{predict}{clusterSVM}(object, newdata = NULL, cluster.predict = NULL,
+  ...)
 }
 \arguments{
 \item{object}{Object of class "clusterSVM", created by \code{clusterSVM}.}
 
 \item{newdata}{An n x p matrix containing the new input data. Could be a matrix or a sparse matrix object.}
+
+\item{cluster.predict}{a function predict new labels on newdata.}
 
 \item{...}{other parameters passing to \code{predict.LiblineaR}}
 }

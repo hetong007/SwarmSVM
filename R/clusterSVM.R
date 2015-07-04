@@ -9,6 +9,10 @@
 #' @param sparse Logical argument indicating whether the output should be a sparse matrix or not
 #' 
 csvmTransform = function(x, lambda, cluster.label, sparse = TRUE) {
+  
+  assertInt(nrow(x), lower = 1)
+  assertInt(ncol(x), lower = 1)
+  
   n = nrow(x)
   m = ncol(x)
   k = max(cluster.label)
@@ -61,7 +65,8 @@ csvmTransform = function(x, lambda, cluster.label, sparse = TRUE) {
 #'     For classification, the values correspond to class labels and can be a 1xn matrix, 
 #'     a simple vector or a factor. For regression, the values correspond to the values to predict, 
 #'     and can be a 1xn matrix or a simple vector.
-#' @param cluster.label an 1xn integer vector containing the cluster label of each sample of \code{x}
+#' @param centers an integer indicating the number of centers in clustering.
+#' @param cluster.object an object generated from \code{cluster.fun}, and can be passed to \code{cluster.predict}
 #' @param lambda the weight for the global l2-norm
 #' @param sparse indicating whether the transformation results in a sparse matrix or not
 #' @param valid.x the mxp validation data matrix.
@@ -85,8 +90,17 @@ csvmTransform = function(x, lambda, cluster.label, sparse = TRUE) {
 #'     If set to 1 (default), the running time and validation score (if applicable) will be printed.
 #'     If set to 2, the running time ,validation score (if applicable) and the \code{LiblineaR} information will be printed.
 #' @param seed the random seed. Set it to \code{NULL} to randomize the model.
-#' @param cluster.fun set to \code{kmeans} by default. Customized function is acceptable, 
-#'     as long as the resulting list contains two fields named as \code{cluster} and \code{centers}.
+#' @param cluster.method The clusterign algorithm to use. Possible choices are 
+#' \itemize{
+#'     \item "kmeans" Algorithm from \code{stats::kmeans}
+#'     \item "mlKmeans" Algorithm from \code{RcppMLPACK::mlKmeans}
+#'     \item "kernkmeans" Algorithm from \code{kernlab::kkmeans}
+#' }
+#' If \code{cluster.fun} and \code{cluster.predict} are provided, \code{cluster.method} doesn't work anymore.
+#' @param cluster.fun The function to train cluster labels for the data based on given number of centers. 
+#'     Customized function is acceptable, as long as the resulting list contains two fields named as \code{cluster} and \code{centers}.
+#' @param cluster.predict The function to predict cluster labels for the data based on trained object. 
+#'     Customized function is acceptable, as long as the resulting list contains two fields named as \code{cluster} and \code{centers}.
 #' @param ... additional parameters passing to \code{cluster.fun}.
 #' 
 #' @return 
@@ -97,6 +111,8 @@ csvmTransform = function(x, lambda, cluster.label, sparse = TRUE) {
 #'    \item \code{label} the clustering label for training data
 #'    \item \code{centers} the clustering centers from teh training dataset
 #'    \item \code{cluster.fun} the function used for clustering
+#'    \item \code{cluster.object} the object either
+#'    \item \code{cluster.predict} the function used for prediction on new data based on the object
 #'    \item \code{time} a list object recording the time consumption for each steps.
 #' }
 #' 
@@ -115,44 +131,65 @@ csvmTransform = function(x, lambda, cluster.label, sparse = TRUE) {
 #' 
 #' @export
 #' 
-clusterSVM = function(x, y, cluster.label = NULL, lambda = 1, sparse = TRUE, 
+clusterSVM = function(x, y, centers, cluster.object = NULL, lambda = 1, sparse = TRUE, 
                       valid.x = NULL, valid.y = NULL, valid.metric = NULL,
                       type = 1, cost = 1, epsilon = NULL, svr.eps = NULL, 
                       bias = TRUE, wi = NULL, verbose = 1, seed = NULL,
-                      cluster.fun = cluster.fun.mlpack, ...) {
+                      cluster.method = "kmeans",
+                      cluster.fun = NULL, cluster.predict = NULL, ...) {
   
   # Parameter check
+  assertInt(nrow(x), lower = 1)
+  assertInt(ncol(x), lower = 1)
+  assertVector(y)
   assertNumber(lambda, lower = 0)
   assertNumber(cost, lower = 0)
   if (!is.null(epsilon)) assertNumber(epsilon, lower = 0)
   assertInt(type, lower = 0, upper = 7)
   assertInt(verbose, lower = 0, upper = 2)
   
+  if (testNull(cluster.fun) && testNull(cluster.predict)) {
+    assertCharacter(cluster.method)
+    if (cluster.method == 'kmeans') {
+      cluster.fun = stats::kmeans
+      cluster.predict = kmeans.predict
+    } else if (cluster.method == 'mlKmeans') {
+      cluster.fun = cluster.fun.mlpack
+      cluster.predict = cluster.predict.mlpack
+    } else if (cluster.method == 'kernkmeans') {
+      cluster.fun = cluster.fun.kkmeans
+      cluster.predict = cluster.predict.kkmeans
+    } else {
+      stop("Unknow cluster.method.")
+    }
+  }
+  assertFunction(cluster.fun)
+  assertFunction(cluster.predict)
+  
   if (!is.null(seed))
     set.seed(seed)
   # Clustering 
   total.time.point = proc.time()
   time.point = proc.time()
-  if (is.null(cluster.label)) {
-    cluster.result = cluster.fun(x, ...)
-    if (is.null(cluster.result$cluster) || is.null(cluster.result$centers))
-      stop("The result of the cluster function must be a list with
-           two fields named as cluster and centers.")
-    cluster.label = cluster.result$cluster
-    cluster.centers = cluster.result$centers
-    # cluster.label = match(cluster.label, unique(cluster.label))
-    k = max(cluster.label)
-    if (k==1)
-      cluster.centers = matrix(cluster.centers,nrow=1)
+  
+  if (testNull(cluster.object)) {
+    # Training
+    assertInt(centers, lower = 1, upper = nrow(x))
+    cluster.result = cluster.fun(x, centers, ...)
+    cluster.object = cluster.result
   } else {
-    # cluster.label = match(cluster.label, unique(cluster.label))
-    k = max(cluster.label)
-    cluster.centers = matrix(0,k,ncol(x))
-    for (i in 1:k) {
-      index = which(cluster.label == i)
-      cluster.centers[i,] = colMeans(x[index,])
-    }
+    # Predicting
+    cluster.result = list()
+    cluster.result$cluster = cluster.predict(x, cluster.object, ...)
+    cluster.result$centers = cluster.object$centers
   }
+  assertMatrix(cluster.result$centers, min.rows = 1, ncols = ncol(x))
+  assertInteger(cluster.result$cluster, lower = 1, upper = nrow(cluster.result$centers), 
+                len = nrow(x))
+  
+  cluster.label = cluster.result$cluster
+  cluster.centers = cluster.result$centers
+  k = nrow(cluster.centers)
   
   clustering.time = (proc.time()-time.point)[3]
   sendMsg('Time for Clustering: ',clustering.time, ' secs\n', verbose = verbose)
@@ -179,7 +216,9 @@ clusterSVM = function(x, y, cluster.label = NULL, lambda = 1, sparse = TRUE,
                             sparse = sparse,
                             label = cluster.label, 
                             centers = cluster.centers,
-                            cluster.fun = cluster.fun)
+                            cluster.fun = cluster.fun,
+                            cluster.object = cluster.object,
+                            cluster.predict = cluster.predict)
   cluster.svm.result = structure(cluster.svm.result, class = 'clusterSVM')
   
   # Validation
@@ -235,24 +274,34 @@ clusterSVM = function(x, y, cluster.label = NULL, lambda = 1, sparse = TRUE,
 #' 
 #' @param object Object of class "clusterSVM", created by \code{clusterSVM}.
 #' @param newdata An n x p matrix containing the new input data. Could be a matrix or a sparse matrix object.
+#' @param cluster.predict a function predict new labels on newdata.
 #' @param ... other parameters passing to \code{predict.LiblineaR}
 #' 
 #' @method predict clusterSVM
 #' 
 #' @export
 #' 
-predict.clusterSVM = function(object, newdata, ...) {
+predict.clusterSVM = function(object, newdata = NULL, cluster.predict = NULL, ...) {
   
-  assertClass(object, 'clusterSVM')
-  
-  if (missing(newdata))
+  if (testNull(newdata))
     return(fitted(object$svm))
   
+  assertClass(object, 'clusterSVM')
+  assertInt(nrow(newdata), lower = 1)
+  assertInt(ncol(newdata), lower = 1)
+  assertMatrix(object$centers, min.rows = 1, ncols = ncol(newdata))
+  if (testNull(cluster.predict)) {
+    cluster.predict = object$cluster.predict
+  }
+  assertFunction(cluster.predict)
+  assertFlag(object$sparse)
+  assertNumber(object$lambda, lower = 0)
+  
   # Assign label
-  new.result = object$cluster.fun(newdata, object$centers)
+  new.labels = cluster.predict(newdata, object$cluster.object)
   
   # Transformation
-  tilde.newdata = csvmTransform(newdata, object$lambda, new.result$cluster, object$sparse)
+  tilde.newdata = csvmTransform(newdata, object$lambda, new.labels, object$sparse)
   
   # Make prediction
   preds = predict(object$svm, tilde.newdata, ...)
