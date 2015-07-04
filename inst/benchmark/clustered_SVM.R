@@ -40,7 +40,7 @@ cluster.fun = function(x, centers, ...) {
   return(result)
 }
 csvm.obj = clusterSVM(x = svmguide1[,-1], y = svmguide1[,1], seed = 512,
-                      cluster.FUN = cluster.fun, centers = 8, 
+                      cluster.fun = cluster.fun, centers = 8, 
                       valid.x = svmguide1.t[,-1],valid.y = svmguide1.t[,1])
 # Time for Clustering: 11.925 secs
 # Time for Transforming: 0.023 secs
@@ -52,10 +52,10 @@ csvm.obj = clusterSVM(x = svmguide1[,-1], y = svmguide1[,1], seed = 512,
 
 # Using stats::kmeans
 csvm.obj = clusterSVM(x = svmguide1[,-1], y = svmguide1[,1], seed = 512,
-                      cluster.FUN = stats::kmeans, centers = 8, 
+                      cluster.fun = stats::kmeans, centers = 8, 
                       valid.x = svmguide1.t[,-1],valid.y = svmguide1.t[,1])
 # KMeans::Cluster(): converged after 47 iterations.
-# exiting from: cluster.FUN(x, ...)
+# exiting from: cluster.fun(x, ...)
 # Time for Clustering: 20.174 secs
 # Time for Transforming: 12.39 secs
 # Time for Liblinear: 12.993 secs

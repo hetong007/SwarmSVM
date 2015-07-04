@@ -211,8 +211,11 @@ repeatSVM = function(train, valid, rep.len = 10) {
   set.seed(1024)
   for (gm in c(0.01,0.1,1,10,100)) {
     for (cst in c(0.01,0.1,1,10,100)) {
+      cat('Begin cv on',gm,'\t',cst)
+      tp = proc.time()
       temp.score = svm.cv(x = train[,-1], y = train[,1], nfold = 5, 
                           gamma = gm, cost = cst, kernel = "radial")
+      cat('\t\tTime:',(proc.time()-tp)[3],'\t\tScore:',temp.score,'\n')
       if (temp.score>best.score) {
         best.score = temp.score
         best.gamma = gm
@@ -260,6 +263,6 @@ repeatSVM(mnist49, mnist49.t, rep.len)
 # 0.9929684          0.0000000         57.6431000          0.1407752          1.0000000        100.0000000 
 
 repeatSVM(mnistoe, mnistoe.t, rep.len)
-# Not finished yet
-# Average Error Standard Deviation       Average Time Standard Deviation          Best Cost 
-# 0.9021700          0.0000823         27.5896000          2.8831490         10.0000000 
+# Not finished
+# It is too long to tune the parameters
+

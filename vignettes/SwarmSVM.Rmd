@@ -1,12 +1,12 @@
 ---
-title: "Ensemble SVM"
+title: "Swarm SVM"
 output: 
   rmarkdown::html_vignette:
     number_sections: yes
     toc: yes
 author: Tong He
 vignette: >
-  %\VignetteIndexEntry{Ensemble SVM}
+  %\VignetteIndexEntry{SwarmSVM}
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 ---
@@ -28,6 +28,39 @@ The main idea of these algorithms are
 These two ideas focus on the efficiency and accuracy respectively. Specifically, we usually use more than one SVM model to solve the whole problem, therefore this is also an ensemble learning framework.
 
 
+Data
+==================================
+
+In this package, we choose a small data set to demonstrate the usage of our functions. The data set is `svmguide1` from [libsvm's official website](http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary.html). The data is collected from an astroparticle application from Jan Conrad of Uppsala University, Sweden.
+
+We can load it by 
+
+```{r, message=FALSE}
+require(SwarmSVM)
+data(svmguide1)
+```
+
+It is a list object. Let's first take a look at the training data.
+
+```{r}
+head(svmguide1[[1]])
+```
+
+The first column contains the classification target value, the other columns contain the features. It is a binary classification task. The second part in the list is the test set: 
+
+```{r}
+head(svmguide1[[2]])
+```
+
+We rename them with the following command:
+
+```{r}
+svmguide1.t = svmguide1[[2]]
+svmguide1 = svmguide1[[1]]
+```
+
+From now on, we have the training data set `svmguide1` and the test data set `svmguide1.t`.
+
 Clustered support vector machines
 ==================================
 
@@ -37,13 +70,13 @@ The algorithm is straight forward:
 
 **Training**
 
-1. Cluster the data. The default setting is `stats::kmeans`.
+1. Cluster the data. The default setting is `RcppMLPACK::mlKmeans`.
 2. Transform the data according to the Eq. (4) - Eq. (7) in the original paper.
 3. Solve the new problem with a linear svm from `LiblineaR::LiblineaR`.
 
 **Test**
 
-1. Assign cluster label to each new data point.
+1. Assign cluster label to each new data point, based on the clustering result from training.
 2. Transform the data according to the Eq. (4) - Eq. (7) in the original paper.
 3. Make prediction with the trained model.
 
@@ -52,13 +85,10 @@ The algorithm is straight forward:
 We demonstrate the usage of this function with the following code:
 
 ```{r}
-require(EnsembleSVM)
-data(svmguide1)
-
 csvm.obj = clusterSVM(x = svmguide1[,-1], y = svmguide1[,1], type = 1,
                       valid.x = svmguide1.t[,-1],valid.y = svmguide1.t[,1], 
-                      seed = 1, verbose = 1,
-                      centers = 8, iter.max = 1000)
+                      seed = 1, verbose = 1, centers = 8)
+csvm.obj$valid.score
 ```
 
 Here the parameters are grouped into four parts:
@@ -81,13 +111,13 @@ The function takes a dense matrix or a sparse matrix as the input feature matrix
 ```{r}
 csvm.obj = clusterSVM(x = as.matrix(svmguide1[,-1]), y = svmguide1[,1], type = 1,
                       valid.x = as.matrix(svmguide1.t[,-1]),valid.y = svmguide1.t[,1], 
-                      seed = 1, verbose = 1,
-                      centers = 8, iter.max = 1000)
+                      seed = 1, verbose = 1, centers = 8)
+csvm.obj$valid.score
 ```
 
 **Self-defined clustering algorithm**
 
-In `clusterSVM`, the clustering is a very important step. Therefore we don't restrict users to the `kmeans` algorithm. Instead, we accept user-defined clustering algorithm as an argument.
+In `clusterSVM`, the clustering is a very important step. Therefore we don't restrict users to the `RcppMLPACK::mlKmeans` algorithm. Instead, we accept user-defined clustering algorithm as an argument.
 
 Note that we require the output of the clustering algorithm contains two fields: `centers` and `cluster`. One example could be
 
@@ -106,8 +136,9 @@ Here we use the kernel kmeans from `kernlab`. Once we have defined the algorithm
 
 ```{r}
 csvm.obj = clusterSVM(x = svmguide1[,-1], y = svmguide1[,1], seed = 1,
-                      cluster.FUN = cluster.fun, centers = 8, 
+                      cluster.fun = cluster.fun, centers = 8, 
                       valid.x = svmguide1.t[,-1],valid.y = svmguide1.t[,1])
+csvm.obj$valid.score
 ```
 
 Notice the accuracy is improved by 1% but the training time is increased drastically. This implies the users should think about the trade-off between accuracy and efficiency.
