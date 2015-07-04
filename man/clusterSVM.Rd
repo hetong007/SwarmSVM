@@ -4,7 +4,7 @@
 \alias{clusterSVM}
 \title{Clustered Support Vector Machine}
 \usage{
-clusterSVM(x, y, centers, cluster.object = NULL, lambda = 1,
+clusterSVM(x, y, centers = NULL, cluster.object = NULL, lambda = 1,
   sparse = TRUE, valid.x = NULL, valid.y = NULL, valid.metric = NULL,
   type = 1, cost = 1, epsilon = NULL, svr.eps = NULL, bias = TRUE,
   wi = NULL, verbose = 1, seed = NULL, cluster.method = "kmeans",

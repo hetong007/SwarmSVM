@@ -97,7 +97,8 @@ sendMsg = function(..., verbose) {
 #' @param ... other parameters passing to \code{kernlab::kkmeans}
 #' 
 cluster.fun.kkmeans = function(x, centers, ...) {
-  x = as.matrix(x)
+  # x = as.matrix(x)
+  assertMatrix(x)
   # due to a wierd namespace problem i add this line
   BBmisc::suppressAll({tmp = kernlab::kkmeans(as.matrix(iris[,-5]), centers, ...)})
   kernl.result = kernlab::kkmeans(x, centers, ...)

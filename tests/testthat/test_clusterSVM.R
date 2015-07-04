@@ -65,7 +65,7 @@ test_that("Switch Clustering function",{
 
 test_that("Performance",{
   liblinear.obj = LiblineaR::LiblineaR(data = svmguide1[,-1], target = svmguide1[,1], 
-                                       type = 1, verbose = F)
+                                       type = 1, verbose = FALSE)
   liblinear.pred = predict(liblinear.obj, svmguide1.t[,-1])$prediction
   liblinear.score = sum(liblinear.pred==svmguide1.t[,1])/length(liblinear.pred)
   
@@ -90,4 +90,41 @@ test_that("Performance",{
                         centers = 2, seed = 512, verbose = 0,
                         valid.x = as.matrix(iris[,-5]),valid.y = iris[,5])
   expect_true(csvm.obj$valid.score>0.97)
+})
+
+set.seed(512)
+xorx = rbind(cbind(runif(100,1,2),runif(100,1,2)),
+             cbind(runif(100,-2,-1),runif(100,1,2)),
+             cbind(runif(100,1,2),runif(100,-2,-1)),
+             cbind(runif(100,-2,-1),runif(100,-2,-1)))
+xory = c(rep(1,100),
+         rep(0,200),
+         rep(1,100))
+
+
+test_that("XOR Toy Data",{
+  
+  liblinear.obj = LiblineaR::LiblineaR(data = xorx, target = xory, 
+                                       type = 1, verbose = FALSE)
+  liblinear.pred = predict(liblinear.obj, xorx)$prediction
+  liblinear.score = sum(liblinear.pred==xory)/length(liblinear.pred)
+  expect_true(liblinear.score<0.6)
+  
+  csvm.obj = clusterSVM(x = xorx, y = xory, lambda = 1,
+                        centers = 8, seed = 512, verbose = 0,
+                        valid.x = xorx, valid.y = xory,
+                        cluster.method = 'kmeans')
+  expect_equal(csvm.obj$valid.score,1)
+  
+  csvm.obj = clusterSVM(x = xorx, y = xory, lambda = 1,
+                        centers = 8, seed = 512, verbose = 0,
+                        valid.x = xorx, valid.y = xory,
+                        cluster.method = 'mlKmeans')
+  expect_equal(csvm.obj$valid.score,1)
+  
+#   csvm.obj = clusterSVM(x = xorx, y = xory, lambda = 1,
+#                         centers = 8, seed = 512, verbose = 0,
+#                         valid.x = xorx, valid.y = xory,
+#                         cluster.method = 'kernkmeans')
+#   expect_equal(csvm.obj$valid.score,1)
 })

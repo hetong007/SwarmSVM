@@ -12,6 +12,8 @@ csvmTransform = function(x, lambda, cluster.label, sparse = TRUE) {
   
   assertInt(nrow(x), lower = 1)
   assertInt(ncol(x), lower = 1)
+  assertInteger(cluster.label, lower = 1, len = nrow(x))
+  assertFlag(sparse)
   
   n = nrow(x)
   m = ncol(x)
@@ -52,6 +54,11 @@ csvmTransform = function(x, lambda, cluster.label, sparse = TRUE) {
       tilde.x[row.index, col.index] = x[row.index,]
     }
     tilde.x = cbind(x / sqrt(lambda), tilde.x)
+  }
+  if (sparse) {
+    assertClass(tilde.x,"matrix.csr")
+  } else {
+    assertMatrix(tilde.x)
   }
   return(tilde.x)
 }
@@ -131,7 +138,7 @@ csvmTransform = function(x, lambda, cluster.label, sparse = TRUE) {
 #' 
 #' @export
 #' 
-clusterSVM = function(x, y, centers, cluster.object = NULL, lambda = 1, sparse = TRUE, 
+clusterSVM = function(x, y, centers = NULL, cluster.object = NULL, lambda = 1, sparse = TRUE, 
                       valid.x = NULL, valid.y = NULL, valid.metric = NULL,
                       type = 1, cost = 1, epsilon = NULL, svr.eps = NULL, 
                       bias = TRUE, wi = NULL, verbose = 1, seed = NULL,
@@ -147,6 +154,9 @@ clusterSVM = function(x, y, centers, cluster.object = NULL, lambda = 1, sparse =
   if (!is.null(epsilon)) assertNumber(epsilon, lower = 0)
   assertInt(type, lower = 0, upper = 7)
   assertInt(verbose, lower = 0, upper = 2)
+  
+  if (testNull(centers) && testNull(cluster.object)) 
+    stop('Either number of centers or the clustering result is needed')
   
   if (testNull(cluster.fun) && testNull(cluster.predict)) {
     assertCharacter(cluster.method)
@@ -168,6 +178,7 @@ clusterSVM = function(x, y, centers, cluster.object = NULL, lambda = 1, sparse =
   
   if (!is.null(seed))
     set.seed(seed)
+  
   # Clustering 
   total.time.point = proc.time()
   time.point = proc.time()
@@ -222,14 +233,16 @@ clusterSVM = function(x, y, centers, cluster.object = NULL, lambda = 1, sparse =
   cluster.svm.result = structure(cluster.svm.result, class = 'clusterSVM')
   
   # Validation
-  validation.time = NULL
-  if (!is.null(valid.x)) {
+  validation.time = 0
+  if (!testNull(valid.x)) {
     time.point = proc.time()
     
-    if (is.null(valid.y)) {
+    if (testNull(valid.y)) {
+      warning("Target value for validation is not available.")
       cluster.svm.result$valid.pred = predict(cluster.svm.result, valid.x)$predictions
+      cluster.svm.result$valid.score = NULL
     } else {
-      if (is.null(valid.metric)) {
+      if (testNull(valid.metric)) {
         if (type<=7) {
           valid.metric = function(pred, truth) list(score = sum(pred==truth)/length(truth),
                                                     name = 'Accuracy')
@@ -263,7 +276,7 @@ clusterSVM = function(x, y, centers, cluster.object = NULL, lambda = 1, sparse =
   time.record$total.time = total.time
   
   cluster.svm.result$time = time.record
-
+  assertClass(cluster.svm.result,"clusterSVM")
   return(cluster.svm.result)
 }
 
