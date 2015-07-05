@@ -92,7 +92,21 @@ cluster.fun.kkmeans = function(x, centers, ...) {
   assertMatrix(x)
   # due to a wierd namespace problem i add this line
   # tmp = kernlab::kkmeans(as.matrix(iris[,-5]), centers, ...)
-  kernl.result = kernlab::kkmeans(x, centers, ...)
+  args = list(x = x, centers = centers, ...)
+  kernl.result = tryCatch(expr = {kernl.result = do.call(kernlab::kkmeans, args)}, 
+                          error = function(err) {
+                            missing.flag = grepl('missing', err)
+                            compute.flag = grepl('unable', err)
+                            err.ind = which(c(missing.flag, compute.flag))
+                            if (err.ind == 1) {
+                              stop("Too many number of centers, some clusters have zero data point.")
+                            } else if (err.ind == 2) {
+                              stop("Computational error in kkmeans, please consider changing the seed.")
+                            } else {
+                              stop(err)
+                            }
+                          })
+  
   result = list()
   result$cluster = kernl.result@.Data
   result$centers = kernl.result@centers
