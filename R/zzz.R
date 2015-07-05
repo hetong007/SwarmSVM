@@ -1,7 +1,6 @@
 #' @importClassesFrom SparseM matrix.csr
 #' @importFrom SparseM t
 #' @import kernlab
-#' @importFrom RcppMLPACK mlKmeans
 #' @import Matrix
 #' @import LiblineaR
 #' @import methods

@@ -42,14 +42,14 @@ kmeans.predict = function(x, cluster.object) {
 #' @param centers A number indicating the number of clustering centers.
 #' @param ... arguments for future use.
 #' 
-cluster.fun.mlpack = function(x, centers, ...) {
+cluster.fun.mlpack.old = function(x, centers, ...) {
 
   assertInt(nrow(x), lower = 1)
   assertInt(ncol(x), lower = 1)
   assertInt(centers, lower = 1, upper = nrow(x))
   
   BBmisc::suppressAll({
-    result = RcppMLPACK::mlKmeans(t(as.matrix(x)),centers)
+    # result = RcppMLPACK::mlKmeans(t(as.matrix(x)),centers)
   })
   result$cluster = result$result+1
   result$cluster= as.integer(result$cluster)
@@ -68,6 +68,9 @@ cluster.fun.mlpack = function(x, centers, ...) {
                 len = nrow(x))
   return(result)
 }
+
+# Temperal mask of RcppMLPACK
+cluster.fun.mlpack = stats::kmeans
 
 cluster.predict.mlpack = function(x, cluster.object) {
   return(kmeans.predict(x, cluster.object))

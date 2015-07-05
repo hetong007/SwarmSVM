@@ -10,7 +10,6 @@ Depends:
 Imports: 
     e1071,
     LiblineaR,
-    RcppMLPACK,
     Matrix,
     SparseM,
     kernlab,
