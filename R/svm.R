@@ -175,7 +175,7 @@ function (formula, data = NULL, ..., subset, na.action = na.omit, scale = TRUE)
 alphasvm.default <-
 function (x,
           y           = NULL,
-          scale       = TRUE,
+          scale       = FALSE,
           type        = NULL,
           kernel      = "radial",
           degree      = 3,
@@ -208,6 +208,9 @@ function (x,
                  dimension = c(x$nrow, x$ncol))
     }
     sparse <- inherits(x, "matrix.csr")
+    
+    assertInt(nrow(x), lower = 1)
+    assertInt(ncol(x), lower = 1)
 
     ## NULL parameters?
     if(is.null(degree)) stop(sQuote("degree"), " must not be NULL!")
@@ -228,6 +231,7 @@ function (x,
       if (nlvl>16) 
         stop("Only classification missions with no more than 16 target classes are allowed.")
     }
+    assertFactor(y, len = nrow(x), max.levels = 16)
 
     # determine model type
     if (is.null(type)) type <-
@@ -322,15 +326,10 @@ function (x,
 
     # Type and format check of alpha
     if (!is.null(alpha)) {
-        if (is.matrix(alpha))
+        if (testMatrix(alpha))
             alpha = as.vector(t(alpha))
-        if (is.factor(y)) {
-            nclass = length(levels(y))-1
-            if (length(alpha)==1)
-                alpha = rep(alpha,nrow(x)*nclass)
-            if (length(alpha)!=nrow(x)*nclass)
-                stop("length of alpha should equal to number_of_points * (number_of_classes-1)")
-        }
+        nclass = length(levels(y))-1
+        assertNumeric(alpha, len = nrow(x)*nclass)
     }
     
     lev <- NULL

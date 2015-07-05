@@ -278,7 +278,7 @@ void svmtrain (double *x, int *r, int *c,
     /* check parameters & copy error message */
     s = svm_check_parameter(&prob, &par);
     if (s) {
-	strcpy(*error, s);
+      strcpy(*error, s);
     } else {
 
 	    /* call svm_train */

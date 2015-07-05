@@ -5,6 +5,7 @@
 \title{Divide-and-Conquer kernel SVM (DC-SVM)}
 \usage{
 dcSVM(x, y, k = 4, m, kernel = 3, max.levels, early = 0, seed = NULL,
+  cluster.method = "kmeans", cluster.fun = NULL, cluster.predict = NULL,
   ...)
 }
 \arguments{
@@ -26,6 +27,20 @@ and can be a 1xn matrix or a simple vector.}
 \item{early}{whether use early prediction}
 
 \item{seed}{the random seed. Set it to \code{NULL} to randomize the model.}
+
+\item{cluster.method}{The clusterign algorithm to use. Possible choices are
+\itemize{
+    \item "kmeans" Algorithm from \code{stats::kmeans}
+    \item "mlKmeans" Algorithm from \code{RcppMLPACK::mlKmeans}
+    \item "kernkmeans" Algorithm from \code{kernlab::kkmeans}
+}
+If \code{cluster.fun} and \code{cluster.predict} are provided, \code{cluster.method} doesn't work anymore.}
+
+\item{cluster.fun}{The function to train cluster labels for the data based on given number of centers.
+Customized function is acceptable, as long as the resulting list contains two fields named as \code{cluster} and \code{centers}.}
+
+\item{cluster.predict}{The function to predict cluster labels for the data based on trained object.
+Customized function is acceptable, as long as the resulting list contains two fields named as \code{cluster} and \code{centers}.}
 
 \item{...}{other parameters passed to \code{e1071::svm}}
 }

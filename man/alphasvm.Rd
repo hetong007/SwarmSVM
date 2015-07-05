@@ -11,7 +11,7 @@ alphasvm(x, ...)
 \method{alphasvm}{formula}(formula, data = NULL, ..., subset,
   na.action = na.omit, scale = TRUE)
 
-\method{alphasvm}{default}(x, y = NULL, scale = TRUE, type = NULL,
+\method{alphasvm}{default}(x, y = NULL, scale = FALSE, type = NULL,
   kernel = "radial", degree = 3, gamma = if (is.vector(x)) 1 else
   1/ncol(x), coef0 = 0, cost = 1, nu = 0.5, class.weights = NULL,
   cachesize = 40, tolerance = 0.001, epsilon = 0.1, shrinking = TRUE,
