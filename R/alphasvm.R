@@ -108,14 +108,14 @@
 #' attach(iris)
 #' 
 #' iris = iris[1:100,]
-#' # default with factor response:
-#' # model = alphasvm(Species ~ ., data = iris)
+#' default with factor response:
+#' model = alphasvm(Species ~ ., data = iris)
 #' 
-#' # get new alpha
-#' # new.alpha = matrix(0, nrow(iris),2)
-#' # new.alpha[model$index,] = model$coefs
+#' get new alpha
+#' new.alpha = matrix(0, nrow(iris),2)
+#' new.alpha[model$index,] = model$coefs
 #' 
-#' # model2 = alphasvm(Species ~ ., data = iris, alpha = new.alpha)
+#' model2 = alphasvm(Species ~ ., data = iris, alpha = new.alpha)
 #' 
 #' @rdname alphasvm
 #' 
@@ -130,7 +130,7 @@ function (x, ...)
 #' @export
 #' 
 alphasvm.formula <-
-function (formula, data = NULL, ..., subset, na.action = na.omit, scale = TRUE)
+function (formula, data = NULL, ..., subset, na.action = na.omit, scale = FALSE)
 {
     call <- match.call()
     if (!inherits(formula, "formula"))
@@ -325,12 +325,23 @@ function (x,
         stop("Need numeric dependent variable for regression.")
 
     # Type and format check of alpha
-    if (!is.null(alpha)) {
-        if (testMatrix(alpha))
-            alpha = as.vector(t(alpha))
-        nclass = length(levels(y))-1
-        assertNumeric(alpha, len = nrow(x)*nclass)
+    nclass = length(unique(y))
+    if (testNull(alpha)) {
+      if (nclass>1) {
+        alpha = matrix(0, nrow(x), nclass-1)
+      } else {
+        alpha = matrix(0, nrow(x), 1)
+      }
+    } 
+    if (testMatrix(alpha))
+        alpha = as.vector(alpha)
+    assertVector(alpha)
+    if (nclass>1) {
+      assertNumeric(alpha, len = nrow(x) * (nclass-1))
+    } else {
+      assertNumeric(alpha, len = nrow(x))
     }
+    
     
     lev <- NULL
     weightlabels <- NULL
@@ -359,7 +370,7 @@ function (x,
             } else lev <- unique(y)
         }
 
-    nclass <- 2
+    # nclass <- 2
     # if (type < 2) nclass <- length(lev)
 
     if (type > 1 && length(class.weights) > 0) {
@@ -677,6 +688,14 @@ function (object, newdata,
     ret2
 }
 
+#' Print alphasvm object
+#' 
+#' @param x An object of class \code{alphasvm}
+#' 
+#' @method print alphasvm
+#' @rdname alphasvm
+#' @export
+#' 
 print.alphasvm <-
 function (x, ...)
 {
@@ -711,10 +730,26 @@ function (x, ...)
 
 }
 
+#' Summary alphasvm object
+#' 
+#' @param object An object of class \code{alphasvm}
+#' 
+#' @method summary alphasvm
+#' @rdname alphasvm
+#' @export
+#' 
 summary.alphasvm <-
 function(object, ...)
     structure(object, class="summary.alphasvm")
 
+#' Print summary.alphasvm object
+#' 
+#' @param x An object of class \code{summary.alphasvm}
+#' 
+#' @method print summary.alphasvm
+#' @rdname alphasvm
+#' @export
+#' 
 print.summary.alphasvm <-
 function (x, ...)
 {
@@ -755,6 +790,25 @@ function(x, center = TRUE, scale = TRUE)
     x
 }
 
+#' Plot alphasvm object
+#' 
+#' @param x An object of class \code{alphasvm}
+#' @param data data to visualize. Should be the same used for fitting.
+#' @param formula formula selecting the visualized two dimensions. Only needed if more than two input variables are used.
+#' @param fillswitch indicating whether a contour plot for the class regions should be added.
+#' @param grid granularity for the contour plot.
+#' @param slice a list of named values for the dimensions held constant (only needed if more than two variables are used). 
+#'     The defaults for unspecified dimensions are 0 (for numeric variables) and the first level (for factors). 
+#'     Factor levels can either be specified as factors or character vectors of length 1.
+#' @param symbolPalette Color palette used for the class the data points and support vectors belong to.
+#' @param svSymbol Symbol used for support vectors.
+#' @param dataSymbol Symbol used for data points (other than support vectors).
+#' @param ... additional graphics parameters passed to \code{filled.contour} and \code{plot}.
+#' 
+#' @method plot alphasvm
+#' 
+#' @export
+#' 
 plot.alphasvm <-
 function(x, data, formula = NULL, fill = TRUE,
          grid = 50, slice = list(), symbolPalette = palette(),
@@ -831,6 +885,17 @@ function(x, data, formula = NULL, fill = TRUE,
     }
 }
 
+#' Write alphasvm object
+#' 
+#' @param object Object of class "alphasvm", created by \code{alphasvm}.
+#' @param svm.file filename to export the \code{alphasvm} object to.
+#' @param scale.file filename to export the scaling data of the explanatory variables to.
+#' @param yscale.file filename to export the scaling data of the dependent variable to, if any.
+#' 
+#' @method write alphasvm
+#' 
+#' @export
+#' 
 write.alphasvm <-
 function (object, svm.file="Rdata.svm", scale.file = "Rdata.scale",
           yscale.file = "Rdata.yscale")

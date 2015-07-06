@@ -231,6 +231,7 @@ void svmtrain (double *x, int *r, int *c,
 	       double *ctotal2,
 	       char   **error)
 {
+    //Rprintf("StartTheWrapper\n");
     struct svm_parameter par;
     struct svm_problem   prob;
     struct svm_model    *model = NULL;
@@ -249,10 +250,10 @@ void svmtrain (double *x, int *r, int *c,
     par.nu          = *nu;
     par.nr_weight   = *nweights;
     if (par.nr_weight > 0) {
-	par.weight      = (double *) malloc (sizeof(double) * par.nr_weight);
-	memcpy(par.weight, weights, par.nr_weight * sizeof(double));
-	par.weight_label = (int *) malloc (sizeof(int) * par.nr_weight);
-	memcpy(par.weight_label, weightlabels, par.nr_weight * sizeof(int));
+      	par.weight      = (double *) malloc (sizeof(double) * par.nr_weight);
+      	memcpy(par.weight, weights, par.nr_weight * sizeof(double));
+      	par.weight_label = (int *) malloc (sizeof(int) * par.nr_weight);
+      	memcpy(par.weight_label, weightlabels, par.nr_weight * sizeof(int));
     }
     par.p           = *epsilon;
     par.shrinking   = *shrinking;
@@ -263,27 +264,25 @@ void svmtrain (double *x, int *r, int *c,
     prob.y = y;
     
     if (*sparse > 0)
-	prob.x = transsparse(x, *r, rowindex, colindex);
+	      prob.x = transsparse(x, *r, rowindex, colindex);
     else
-	prob.x = sparsify(x, *r, *c);
+	      prob.x = sparsify(x, *r, *c);
     
     /* set alpha if exist */
     //if (TYPEOF(*alpha) != NILSXP) {
     prob.ispp = 0;
-    prob.isalpha = 0;
-    if (alpha != NULL) {
-      prob.alpha = alpha;
-      prob.isalpha = 1;
-    }
+    prob.isalpha = 1;
+    prob.alpha = alpha;
+
     /* check parameters & copy error message */
     s = svm_check_parameter(&prob, &par);
     if (s) {
       strcpy(*error, s);
     } else {
-
+      //Rprintf("Start Training!\n");
 	    /* call svm_train */
 	    model = svm_train(&prob, &par);
-        
+      //Rprintf("Finished Training!\n");
 	    /* set up return values */
 
 	    /*	for (ii = 0; ii < model->l; ii++)
@@ -308,10 +307,13 @@ void svmtrain (double *x, int *r, int *c,
 
 	    for (i = 0; i < *nclasses-1; i++)
 	        memcpy (coefs + i * *nr, model->sv_coef[i],  *nr * sizeof (double));
-	
+	    //Rprintf("svm_type is %d\n", svm_type);
 	    if (*svm_type < 2) {
 	        memcpy (labels, model->label, *nclasses * sizeof(int));
 	        memcpy (nSV, model->nSV, *nclasses * sizeof(int));
+          //Rprintf("nclasses is %d\n", *nclasses);
+          //for (i=0;i<*nclasses;i++)
+            //Rprintf("model->nSV is %d, nSV is %d\n", model->nSV[i], nSV[i]);
 	    }
 	
 	    /* Perform cross-validation, if requested */
@@ -325,8 +327,8 @@ void svmtrain (double *x, int *r, int *c,
     
     /* clean up memory */
     if (par.nr_weight > 0) {
-	free(par.weight);
-	free(par.weight_label);
+    	free(par.weight);
+    	free(par.weight_label);
     }
     
     for (i = 0; i < *r; i++) free (prob.x[i]);

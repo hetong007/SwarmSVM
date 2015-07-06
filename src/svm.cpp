@@ -2515,6 +2515,7 @@ svm_model *svm_train(const svm_problem *prob, const svm_parameter *param)
 					++total_sv;
 				}
 			model->nSV[i] = nSV;
+      //Rprintf("nSV is %d\n",model->nSV[i]);
 			nz_count[i] = nSV;
 		}
 		
