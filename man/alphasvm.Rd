@@ -107,10 +107,6 @@ and included in the model or not (default: \code{TRUE})}
 A numerical vector for binary classification or a nx(k-1) matrix for a k-class-classification problem.}
 
 \item{object}{An object of class \code{alphasvm}}
-
-\item{x}{An object of class \code{alphasvm}}
-
-\item{x}{An object of class \code{summary.alphasvm}}
 }
 \description{
 alphasvm is used to train a support vector machine. It can be used to carry out general regression and classification (of nu and epsilon-type), as well as density-estimation. A formula interface is provided.
@@ -150,11 +146,10 @@ For multiclass-classification with k levels, k>2, \code{libsvm} uses the
 data(iris)
 attach(iris)
 
-iris = iris[1:100,]
-default with factor response:
+# default with factor response:
 model = alphasvm(Species ~ ., data = iris)
 
-get new alpha
+# get new alpha
 new.alpha = matrix(0, nrow(iris),2)
 new.alpha[model$index,] = model$coefs
 

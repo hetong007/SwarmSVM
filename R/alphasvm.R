@@ -107,11 +107,10 @@
 #' data(iris)
 #' attach(iris)
 #' 
-#' iris = iris[1:100,]
-#' default with factor response:
+#' # default with factor response:
 #' model = alphasvm(Species ~ ., data = iris)
 #' 
-#' get new alpha
+#' # get new alpha
 #' new.alpha = matrix(0, nrow(iris),2)
 #' new.alpha[model$index,] = model$coefs
 #' 
@@ -690,8 +689,6 @@ function (object, newdata,
 
 #' Print alphasvm object
 #' 
-#' @param x An object of class \code{alphasvm}
-#' 
 #' @method print alphasvm
 #' @rdname alphasvm
 #' @export
@@ -732,8 +729,6 @@ function (x, ...)
 
 #' Summary alphasvm object
 #' 
-#' @param object An object of class \code{alphasvm}
-#' 
 #' @method summary alphasvm
 #' @rdname alphasvm
 #' @export
@@ -744,7 +739,7 @@ function(object, ...)
 
 #' Print summary.alphasvm object
 #' 
-#' @param x An object of class \code{summary.alphasvm}
+#' @param object An object of class \code{alphasvm}
 #' 
 #' @method print summary.alphasvm
 #' @rdname alphasvm
@@ -795,7 +790,7 @@ function(x, center = TRUE, scale = TRUE)
 #' @param x An object of class \code{alphasvm}
 #' @param data data to visualize. Should be the same used for fitting.
 #' @param formula formula selecting the visualized two dimensions. Only needed if more than two input variables are used.
-#' @param fillswitch indicating whether a contour plot for the class regions should be added.
+#' @param fill switch indicating whether a contour plot for the class regions should be added.
 #' @param grid granularity for the contour plot.
 #' @param slice a list of named values for the dimensions held constant (only needed if more than two variables are used). 
 #'     The defaults for unspecified dimensions are 0 (for numeric variables) and the first level (for factors). 

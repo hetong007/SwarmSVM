@@ -15,6 +15,8 @@
 
 \item{formula}{formula selecting the visualized two dimensions. Only needed if more than two input variables are used.}
 
+\item{fill}{switch indicating whether a contour plot for the class regions should be added.}
+
 \item{grid}{granularity for the contour plot.}
 
 \item{slice}{a list of named values for the dimensions held constant (only needed if more than two variables are used).
@@ -28,8 +30,6 @@ Factor levels can either be specified as factors or character vectors of length 
 \item{dataSymbol}{Symbol used for data points (other than support vectors).}
 
 \item{...}{additional graphics parameters passed to \code{filled.contour} and \code{plot}.}
-
-\item{fillswitch}{indicating whether a contour plot for the class regions should be added.}
 }
 \description{
 Plot alphasvm object
