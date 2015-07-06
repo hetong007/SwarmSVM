@@ -28,6 +28,7 @@ test_that("Performance",{
   score = sum(diag(table(preds,svmguide1.t[,1])))/nrow(svmguide1.t)
   expect_true(score>0.8)
   # compare the alpha changes:
+  # ind = intersect(model$index,model2$index)
   # plot(model$coefs[match(ind,model$index),],model2$coefs[match(ind,model2$index),],pch=20)
 })
 

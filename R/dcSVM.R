@@ -30,10 +30,10 @@
 #' data(svmguide1)
 #' svmguide1.t = as.matrix(svmguide1[[2]])
 #' svmguide1 = as.matrix(svmguide1[[1]])
-#' # dcsvm.model = dcSVM(x = svmguide1[,-1], y = svmguide1[,1],
-#' #                     k = 4, max.levels = 4, seed = 0,
-#' #                     kernel = 3,early = 0, m = 800)
-#' # preds = predict(dcsvm.model, svmguide1.t[,-1])
+#' dcsvm.model = dcSVM(x = svmguide1[,-1], y = svmguide1[,1],
+#'                     k = 4, max.levels = 4, seed = 0,
+#'                     kernel = 3,early = 0, m = 800)
+#' preds = predict(dcsvm.model, svmguide1.t[,-1])
 #' 
 #' @export
 #' 
@@ -50,7 +50,7 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
     m = n
   }
   assertMatrix(x, min.rows = 1, min.cols = 1)
-  assertFactor(y, max.levels = 16)
+  assertVector(y, len = nrow(x))
   
   if (testNull(cluster.fun) && testNull(cluster.predict)) {
     assertCharacter(cluster.method)
@@ -79,7 +79,7 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
   
   
   support = rep(FALSE, n)
-  num.lvls = length(levels(y))
+  num.lvls = length(unique(y))
   assertInt(num.lvls, lower = 2, upper = 16)
   alpha = matrix(0, n, num.lvls-1)
   
@@ -90,7 +90,7 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
   cluster.ind = matrix(0, n, max.levels+1)
   cluster.ind[,1] = 1
   # In MATLAB here is ceiling(m/(k^max.levels*5))
-  min.cluster = ceiling(m/(k^max.levels))
+  min.cluster = ceiling(5*m/(k^max.levels))
   assertInt(min.cluster, lower = 1)
   #min.cluster = 100
   for (i in 1:max.levels) {
@@ -101,10 +101,7 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
     for (cid in 1:num.clust) {
       # train on samples
       ind = which(sample.cluster.ind[,i]==cid)
-      cluster.object = cluster.fun(sampleX[ind,],centers = k)
-      res = cluster.object$cluster
-      res = as.numeric(as.factor(res))
-      if (min(table(res))<min.cluster) {
+      if (length(ind)<min.cluster) {
         sample.cluster.ind[ind,i+1] = sample.nowcid+1
         sample.nowcid = sample.nowcid+1
         
@@ -113,13 +110,17 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
         cluster.ind[ind,i+1] = 1+nowcid
         nowcid = nowcid + 1
       } else {
+        cluster.object = cluster.fun(sampleX[ind,],centers = k)
+        res = cluster.object$cluster
+        res = as.numeric(as.factor(res))
+        
         sample.cluster.ind[ind,i+1] = res+sample.nowcid
         current.centers = cluster.object$centers
         sample.nowcid = sample.nowcid+max(res)
         
         # predict on the entire data set
         ind = which(cluster.ind[,i]==cid)
-        res = cluster.fun(as.matrix(x[ind,]),centers = current.centers)$cluster
+        res = cluster.predict(as.matrix(x[ind,]),cluster.object)
         res = as.numeric(as.factor(res))
         cluster.ind[ind,i+1] = res+nowcid
         nowcid = nowcid + max(res)
@@ -144,8 +145,8 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
     # cluster.label = cluster.fun(x, kmeans.res$centers)$cluster
     assertLogical(support, len = n)
     assertMatrix(alpha, nrows = n, ncols = num.lvls-1)
-    cluster.label = cluster.ind[, lvl+1]
-    assertInteger(cluster.label, len = n)
+    cluster.label = as.integer(cluster.ind[, lvl+1])
+    assertInteger(cluster.label, len = n, lower = 1)
     cat('Begin level', lvl, '\n')
     
     # Train svm for each cluster
