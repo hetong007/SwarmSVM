@@ -334,12 +334,16 @@ function (x,
     } 
     if (testMatrix(alpha))
         alpha = as.vector(alpha)
+    # Experiment
+    alpha = abs(alpha)
     assertVector(alpha)
     if (nclass>1) {
       assertNumeric(alpha, len = nrow(x) * (nclass-1))
     } else {
       assertNumeric(alpha, len = nrow(x))
     }
+    alphalen = as.integer(length(alpha))
+    assertInt(alphalen)
     
     
     lev <- NULL
@@ -423,6 +427,7 @@ function (x,
                 as.integer (sparse),
                 as.integer (probability),
                 as.double  (alpha),
+                as.integer (alphalen),
 
                 ## results
                 nclasses = integer  (1),

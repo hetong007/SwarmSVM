@@ -214,6 +214,7 @@ void svmtrain (double *x, int *r, int *c,
 	       int    *sparse,
 	       int    *probability,
 	       double *alpha,
+         int    *alphalen,
 	       
 	       int    *nclasses,
 	       int    *nr,
@@ -272,7 +273,12 @@ void svmtrain (double *x, int *r, int *c,
     //if (TYPEOF(*alpha) != NILSXP) {
     prob.ispp = 0;
     prob.isalpha = 1;
-    prob.alpha = alpha;
+    prob.alpha = Malloc(double, *alphalen);
+    for (int i = 0; i < (*alphalen); i++) {
+        prob.alpha[i] = alpha[i];
+        //Rprintf("%f %f\n",prob.alpha[i],alpha[i]);
+    }
+    //prob.alpha = alpha;
 
     /* check parameters & copy error message */
     s = svm_check_parameter(&prob, &par);

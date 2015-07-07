@@ -529,6 +529,10 @@ void Solver::Solve(int l, const QMatrix& Q, const double *p_, const schar *y_,
 	this->eps = eps;
 	unshrink = false;
 
+
+  // test alpha clone result
+  //for (int i = 0; i<l ; i++) 
+  //  Rprintf("%f %f\n",alpha[i],alpha_[i]);
 	double inittime = clock();
 
 	// initialize alpha_status
@@ -600,10 +604,12 @@ void Solver::Solve(int l, const QMatrix& Q, const double *p_, const schar *y_,
 		}
 
 		int i,j;
+    //Rprintf("\n%d ",i);
 		if(select_working_set(i)!=0)
 		{
 			// reconstruct the whole gradient
 			reconstruct_gradient();
+      //Rprintf(" %d",i);
 
 			// reset active set size and check
 			active_size = l;
@@ -613,6 +619,7 @@ void Solver::Solve(int l, const QMatrix& Q, const double *p_, const schar *y_,
 			else
 				counter = 1;	// do shrinking next iteration
 		}
+    //Rprintf("\n");
 	
 		++iter;
 
@@ -631,11 +638,14 @@ void Solver::Solve(int l, const QMatrix& Q, const double *p_, const schar *y_,
 		if ( quad_coef <= 0)
 			quad_coef = TAU;
 		double delta = -G[i]/quad_coef;
+    //Rprintf("%d %f %f %f    ",i,alpha[i],G[i],quad_coef);
 		alpha[i] += delta;
+    //Rprintf("%f ",alpha[i]);
 		if (alpha[i]<0)
 			alpha[i] = 0;
 		if (alpha[i] > C_i)
 			alpha[i] = C_i;
+    //Rprintf("%f\n",alpha[i]);
 
 		/*
 		if(y[i]!=y[j])
@@ -2122,6 +2132,8 @@ static void svm_binary_svc_probability(
 		int j = i+((int) (unif_rand() * (prob->l-i))) % (prob->l-i);
 		swap(perm[i],perm[j]);
 	}
+  PutRNGstate();
+  
 	for(i=0;i<nr_fold;i++)
 	{
 		int begin = i*prob->l/nr_fold;
@@ -2369,8 +2381,11 @@ svm_model *svm_train(const svm_problem *prob, const svm_parameter *param)
 		if ( prob->isalpha == 1)
 		{
 			alpha = Malloc(double, l);
-			for ( i=0 ; i<l ; i++ )
+      //Rprintf("\ncopy alpha after permutation\n");
+			for ( i=0 ; i<l ; i++ ) {
 				alpha[i] = prob->alpha[perm[i]];
+        //Rprintf("%f %d\n", alpha[i], perm[i]);
+			}
 		}
 		double *pp;
 		if ( prob->ispp == 1)
@@ -2386,7 +2401,7 @@ svm_model *svm_train(const svm_problem *prob, const svm_parameter *param)
 		for(i=0;i<nr_class;i++)
 			weighted_C[i] = param->C;
 		for(i=0;i<param->nr_weight;i++)
-		{	
+		{
 			int j;
 			for(j=0;j<nr_class;j++)
 				if(param->weight_label[i] == label[j])
