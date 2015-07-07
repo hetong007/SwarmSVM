@@ -18,7 +18,7 @@ alphasvm(x, ...)
   kernel = "radial", degree = 3, gamma = if (is.vector(x)) 1 else
   1/ncol(x), coef0 = 0, cost = 1, nu = 0.5, class.weights = NULL,
   cachesize = 40, tolerance = 0.001, epsilon = 0.1, shrinking = TRUE,
-  cross = 0, probability = FALSE, fitted = FALSE, alpha = NULL, ...,
+  cross = 0, probability = FALSE, fitted = TRUE, alpha = NULL, ...,
   subset, na.action = na.omit)
 
 \method{print}{alphasvm}(x, ...)
@@ -143,6 +143,14 @@ For multiclass-classification with k levels, k>2, \code{libsvm} uses the
     predictions, and estimates the scale parameter using maximum likelihood.
 }
 \examples{
+data(svmguide1)
+svmguide1.t = svmguide1[[2]]
+svmguide1 = svmguide1[[1]]
+
+model = alphasvm(x = svmguide1[,-1], y = svmguide1[,1], scale = TRUE)
+preds = predict(model, svmguide1.t[,-1])
+table(preds, svmguide1.t[,1])
+
 data(iris)
 attach(iris)
 
@@ -154,6 +162,8 @@ new.alpha = matrix(0, nrow(iris),2)
 new.alpha[model$index,] = model$coefs
 
 model2 = alphasvm(Species ~ ., data = iris, alpha = new.alpha)
+preds = predict(model2, as.matrix(iris[,-5]))
+table(preds, iris[,5])
 }
 \author{
 Tong He (based on package \code{e1071} by David Meyer and C/C++ code by Cho-Jui Hsieh in Divide-and-Conquer kernel SVM (DC-SVM) )

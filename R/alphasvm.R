@@ -104,6 +104,15 @@
 #' Tong He (based on package \code{e1071} by David Meyer and C/C++ code by Cho-Jui Hsieh in Divide-and-Conquer kernel SVM (DC-SVM) )
 #' 
 #' @examples
+#' 
+#' data(svmguide1)
+#' svmguide1.t = svmguide1[[2]]
+#' svmguide1 = svmguide1[[1]]
+#' 
+#' model = alphasvm(x = svmguide1[,-1], y = svmguide1[,1], scale = TRUE)
+#' preds = predict(model, svmguide1.t[,-1])
+#' table(preds, svmguide1.t[,1])
+#' 
 #' data(iris)
 #' attach(iris)
 #' 
@@ -115,6 +124,8 @@
 #' new.alpha[model$index,] = model$coefs
 #' 
 #' model2 = alphasvm(Species ~ ., data = iris, alpha = new.alpha)
+#' preds = predict(model2, as.matrix(iris[,-5]))
+#' table(preds, iris[,5])
 #' 
 #' @rdname alphasvm
 #' 
@@ -189,7 +200,7 @@ function (x,
           shrinking   = TRUE,
           cross       = 0,
           probability = FALSE,
-          fitted      = FALSE,
+          fitted      = TRUE,
           alpha       = NULL,
           ...,
           subset,
@@ -334,7 +345,7 @@ function (x,
     } 
     if (testMatrix(alpha))
         alpha = as.vector(alpha)
-    # Experiment
+    # Key Point
     alpha = abs(alpha)
     assertVector(alpha)
     if (nclass>1) {
@@ -552,7 +563,10 @@ function (object, newdata,
 
     if (object$tot.nSV < 1) {
         #stop("Model is empty!")
-      return(object$fitted)
+      assertInt(nrow(newdata), lower = 1)
+      n = nrow(newdata)
+      res = rep(object$fitted[1], n)
+      return(res)
     }
 
 

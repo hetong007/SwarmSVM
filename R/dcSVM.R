@@ -31,9 +31,11 @@
 #' svmguide1.t = as.matrix(svmguide1[[2]])
 #' svmguide1 = as.matrix(svmguide1[[1]])
 #' dcsvm.model = dcSVM(x = svmguide1[,-1], y = svmguide1[,1],
-#'                     k = 4, max.levels = 4, seed = 0,
+#'                     k = 4, max.levels = 4, seed = 0, cost = 32, gamma = 2,
 #'                     kernel = 3,early = 0, m = 800)
 #' preds = predict(dcsvm.model, svmguide1.t[,-1])
+#' table(preds, svmguide1.t[,1])
+#' sum(diag(table(preds,svmguide1.t[,1])))/nrow(svmguide1.t)
 #' 
 #' @export
 #' 
@@ -46,7 +48,7 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
     set.seed(seed)
   n = nrow(x)
   if (m>n) {
-    warning("m larger than number of data points. It is adjusted to n.")
+    warning("m larger than n, the number of data points. It is adjusted to n.")
     m = n
   }
   assertMatrix(x, min.rows = 1, min.cols = 1)
@@ -77,31 +79,39 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
   assertInt(max.levels, lower = 1)
   assertInt(early, lower = 0, upper = max.levels)
   
-  
   support = rep(FALSE, n)
   num.lvls = length(unique(y))
   assertInt(num.lvls, lower = 2, upper = 16)
   alpha = matrix(0, n, num.lvls-1)
   
   # clustering tree process
-  sampleX = as.matrix(x[sample(1:n,m),])
+  sampleX.ind = sample(1:n,m)
+  sampleX = as.matrix(x[sampleX.ind,])
   sample.cluster.ind = matrix(0, nrow(sampleX), max.levels+1)
   sample.cluster.ind[,1] = 1
   cluster.ind = matrix(0, n, max.levels+1)
   cluster.ind[,1] = 1
   # In MATLAB here is ceiling(m/(k^max.levels*5))
   min.cluster = ceiling(5*m/(k^max.levels))
+  if (min.cluster>m)
+    stop("Too few data points or too many clusters assigned.")
   assertInt(min.cluster, lower = 1)
   #min.cluster = 100
+  
+  cluster.tree = list()
+  
   for (i in 1:max.levels) {
     num.clust = max(sample.cluster.ind[,i])
     center.list = list()
     sample.nowcid = 0
     nowcid = 0
+    cluster.object.list = list()
+    
     for (cid in 1:num.clust) {
       # train on samples
       ind = which(sample.cluster.ind[,i]==cid)
       if (length(ind)<min.cluster) {
+        cluster.object = cluster.fun(sampleX[ind,], centers = 1)
         sample.cluster.ind[ind,i+1] = sample.nowcid+1
         sample.nowcid = sample.nowcid+1
         
@@ -125,19 +135,25 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
         cluster.ind[ind,i+1] = res+nowcid
         nowcid = nowcid + max(res)
       }
+      cluster.object.list[[cid]] = cluster.object
       # cat(i,cid,'\n')
     }
+    cluster.tree[[i]] = cluster.object.list
     sample.cluster.ind[,i+1] = as.numeric(as.factor(sample.cluster.ind[,i+1]))
     cluster.ind[,i+1] = as.numeric(as.factor(cluster.ind[,i+1]))
     if (length(unique(cluster.ind[,i+1]))==length(unique(cluster.ind[,i]))) {
       cluster.ind = cluster.ind[,1:i]
       max.levels = i-1
+      if (early>max.levels)
+        early = max.levels
       warning("max.levels reduced.")
       break
     }
   }
   if (max.levels<1)
     stop('no cluster applied.')
+  
+  assertInt(early, lower = 0, upper = max.levels)
   
   # SVM train
   for (lvl in max.levels:1) {
@@ -201,7 +217,7 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
   # Result structure
   result = list(svm = svm.models,
                 early = early,
-                cluster.object = cluster.object,
+                cluster.tree = cluster.tree,
                 cluster.fun = cluster.fun,
                 cluster.predict = cluster.predict)
   result = structure(result, class = "dcSVM")
@@ -229,16 +245,33 @@ predict.dcSVM = function(object, newdata, ...) {
   if (missing(newdata))
     return(fitted(object$svm))
   
-  assertMatrix(newdata)
+  assertMatrix(newdata, min.rows = 1)
   
   # Assign label
   if (object$early > 0) {
-    new.result = object$cluster.predict(newdata,object$cluster.object)
+    new.result = rep(1, nrow(newdata))
+    for (i in 1:object$early) {
+      #i = object$early
+      cluster.object.list = object$cluster.tree[[i]]
+      new.label = rep(0,nrow(newdata))
+      k = 0
+      for (cid in 1:length(cluster.object.list)) {
+        ind = which(new.result == cid)
+        if (length(ind) > 0) {
+          new.label[ind] = k + object$cluster.predict(newdata[ind,, drop = FALSE], 
+                                                  cluster.object.list[[cid]])
+          k = max(new.label[ind])
+        }
+      }
+      new.result = new.label
+    }
+    # new.result = object$cluster.predict(newdata,object$cluster.object)
     k = max(new.result)
     preds = rep(0, nrow(newdata))
     for (i in 1:k) {
       ind = which(new.result == i)
-      preds[ind] = predict.alphasvm(object$svm[[i]], newdata[ind,], ...)
+      if (length(ind)>0)
+        preds[ind] = predict.alphasvm(object$svm[[i]], newdata[ind,, drop = FALSE], ...)
     }
   } else {
     preds = predict(object$svm, newdata, ...)
