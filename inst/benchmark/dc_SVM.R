@@ -12,15 +12,11 @@ ijcnn1 = ijcnn1[[1]]
 #### DC SVM
 ##############
 
-set.seed(1024)
-dcsvm.model = dcSVM(x = as.matrix(ijcnn1[,-1]), y = ijcnn1[,1], k = 10, max.levels = 1, 
-                    early = 1, gamma = 2, cost = 32, tolerance = 1e-2, m = 5000, scale = TRUE)
-
-fits = predict(dcsvm.model, as.matrix(ijcnn1[,-1]))
-table(fits,ijcnn1[,1])
-sum(diag(table(fits,ijcnn1[,1])))/nrow(ijcnn1)
-# 0.9957992
-preds = predict(dcsvm.model, as.matrix(ijcnn1.t[,-1]))
+dcsvm.model = dcSVM(x = ijcnn1[,-1], y = ijcnn1[,1], k = 10, max.levels = 1, seed = 1024,
+                    early = 1, gamma = 2, cost = 32, tolerance = 1e-2, m = 5000, scale = FALSE,
+                    valid.x = ijcnn1.t[,-1], valid.y = ijcnn1.t[,1])
+preds = dcsvm.model$valid.pred
 table(preds,ijcnn1.t[,1])
-sum(diag(table(preds,ijcnn1.t[,1])))/nrow(ijcnn1.t)
+dcsvm.model$valid.score
+dcsvm.model$time$total.time
 # 0.9840569

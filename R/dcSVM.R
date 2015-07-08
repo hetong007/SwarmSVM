@@ -37,10 +37,11 @@
 #' svmguide1 = as.matrix(svmguide1[[1]])
 #' dcsvm.model = dcSVM(x = svmguide1[,-1], y = svmguide1[,1],
 #'                     k = 4, max.levels = 4, seed = 0, cost = 32, gamma = 2,
-#'                     kernel = 3,early = 0, m = 800)
-#' preds = predict(dcsvm.model, svmguide1.t[,-1])
+#'                     kernel = 3,early = 0, m = 800,
+#'                     valid.x = svmguide1.t[,-1], valid.y = svmguide1.t[,1])
+#' preds = dcsvm.model$valid.pred
 #' table(preds, svmguide1.t[,1])
-#' sum(diag(table(preds,svmguide1.t[,1])))/nrow(svmguide1.t)
+#' dcsvm.model$valid.score
 #' 
 #' @export
 #' 
@@ -58,7 +59,9 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
     warning("m larger than n, the number of data points. It is adjusted to n.")
     m = n
   }
-  assertMatrix(x, min.rows = 1, min.cols = 1)
+  #assertMatrix(x, min.rows = 1, min.cols = 1)
+  assertInt(nrow(x), lower = 1)
+  assertInt(ncol(x), lower = 1)
   assertVector(y, len = nrow(x))
   
   if (testNull(cluster.fun) && testNull(cluster.predict)) {
@@ -104,12 +107,15 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
     scale = which(scale)
     co = apply(x[,scale, drop = FALSE], 2, var) == 0
     if (any(co)) {
+      ind = which(co)
       warning(paste("Variable(s)",
-                    paste(co, sep = "", collapse = " and "),
-                    "constant. Cannot scale data.")
+                    paste(ind, sep = "", collapse = " and "),
+                    "constant. Cannot be scaled.")
       )
-      scale = rep(FALSE, ncol(x))
-    } else {
+      #scale = rep(FALSE, ncol(x))
+      scale = setdiff(scale, ind)
+    }
+    if (length(scale)>0) {
       xtmp = scale(x[,scale])
       x[,scale] = xtmp
       x.scaled.center = attr(xtmp, 'scaled:center')
@@ -198,7 +204,7 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
     assertMatrix(alpha, nrows = n, ncols = num.lvls-1)
     cluster.label = as.integer(cluster.ind[, lvl+1])
     assertInteger(cluster.label, len = n, lower = 1)
-    cat('Begin level', lvl, '\n')
+    # cat('Begin level', lvl, '\n')
     
     # Train svm for each cluster
     new.alpha = matrix(0, n, num.lvls-1)
@@ -226,7 +232,7 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
           new.alpha[sv.ind,] = svm.model$coefs
         }
       }
-      cat(clst,'\r')
+      # cat(clst,'\r')
     }
     support = new.support
     alpha = new.alpha
@@ -266,16 +272,20 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
   validation.time = 0
   if (!testNull(valid.x)) {
     time.point = proc.time()
-    assertMatrix(valid.x, min.rows = 1, ncols = ncol(x))
+    # assertMatrix(valid.x, min.rows = 1, ncols = ncol(x))
+    assertClass(valid.x, classes = class(x))
+    assertInt(nrow(valid.x), lower = 1)
+    assertInt(ncol(valid.x), lower = 1)
     if (testNull(valid.y)) {
       warning("Target value for validation is not available.")
       result$valid.pred = predict(result, valid.x)
       result$valid.score = NULL
     } else {
-      assertInteger(valid.y, len = nrow(valid.x))
+      assertVector(valid.y, len = nrow(valid.x))
       if (testNull((valid.metric))) {
         valid.metric = function(pred, truth) {
-          list(score = sum(pred==truth)/length(truth),
+          score = sum(diag(table(pred, truth)))/length(truth)
+          list(score = score,
                name = 'Accuracy')
         }
       }
@@ -319,7 +329,9 @@ predict.dcSVM = function(object, newdata, ...) {
   if (missing(newdata))
     return(fitted(object$svm))
   
-  assertMatrix(newdata, min.rows = 1)
+  # assertMatrix(newdata, min.rows = 1)
+  assertInt(nrow(newdata), lower = 1)
+  assertInt(ncol(newdata), lower = 1)
   scale.info = object$scale
   if (any(scale.info$scale)) {
     assertInteger(scale.info$scale)

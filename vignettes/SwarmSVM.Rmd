@@ -123,7 +123,7 @@ Here the parameters are grouped into four parts:
 1. `x` and `y` are the feature matric and target vector of the training data. `type` is specifying the mission and the type of the SVM.
 2. `valid.x` and `valid.y` are the feature matric and target vector of the validation data.
 3. `seed` is controlling the random seed to make the result reproducible. `verbose` is controlling the content of the output.
-4. `centers` and `iter.max` are parameters passing to the cluster algorithm.
+4. `centers` is the parameter passing to the cluster algorithm.
 
 **Dense and sparse input**
 
@@ -175,6 +175,9 @@ Notice the accuracy is improved by 1% but the training time is increased drastic
 A Divide-and-Conquer Support Vector Machine
 =============================================
 
+
+#### Algorithm
+
 The algorithm could be described as the following:
 
 **Training**
@@ -200,19 +203,88 @@ There are two ways to do prediction.
 2. Exact Prediction
     - We predict with the final svm model on the new input data.
 
+#### Basic usage
+
+We demonstrate the usage of this function with the following code:
+
+```{r}
+dcsvm.model = dcSVM(x = svmguide1[,-1], y = svmguide1[,1],
+                    k = 4, max.levels = 4, seed = 0, cost = 32, gamma = 2,
+                    kernel = 3,early = 0, m = 800,
+                    valid.x = svmguide1.t[,-1], valid.y = svmguide1.t[,1])
+dcsvm.model$valid.score
+```
+
+Here the parameters can be grouped into five parts.
+
+1. `x` and `y` are the feature matric and target vector of the training data. 
+2. `valid.x` and `valid.y` are the feature matric and target vector of the validation data.
+3. `seed` is controlling the random seed to make the result reproducible.
+4. `k`, `max.levels` controls the size of the subproblem tree. 
+5. `early` is the variable specifying whether we use early prediction or not. If `early = 0` then we don't use early prediction strategy, if `early = l` then we perform the early prediction at level `l`.
+
+**Early Prediction**
+
+We can do the early prediction by the following command:
+
+```{r}
+dcsvm.model = dcSVM(x = as.matrix(svmguide1[,-1]), y = svmguide1[,1], 
+                    k = 10, max.levels = 1, 
+                    early = 1, gamma = 2, cost = 32, tolerance = 1e-2, m = 800, 
+                    valid.x = svmguide1.t[,-1], valid.y = svmguide1.t[,1])
+dcsvm.model$valid.score
+dcsvm.model$time$total.time
+```
+
+It is faster because we can stop at a level, and don't need to train SVMs for data of larger size.
+
+**Exact Prediction**
+
+To make the model more accurate, we can also perform the exact training by:
+
+```{r}
+dcsvm.model = dcSVM(x = as.matrix(svmguide1[,-1]), y = svmguide1[,1], 
+                    k = 10, max.levels = 1, 
+                    early = 1, gamma = 2, cost = 32, tolerance = 1e-2, m = 800, 
+                    valid.x = svmguide1.t[,-1], valid.y = svmguide1.t[,1])
+dcsvm.model$valid.score
+dcsvm.model$time$total.time
+```
+
+This is more accurate but the time is longer. It a balance between the accuracy and the time complexity.
+
+**Sparse Input**
+
+First we download the following dataset.
+
+```{r}
+local.file.name = tempfile()
+download.file("http://www.sfu.ca/~hetongh/data/ijcnn1.dcsvm.RData",local.file.name)
+load(local.file.name)
+ijcnn1.t = ijcnn1[[2]]
+ijcnn1 = ijcnn1[[1]]
+```
+
+These two objects are sparse matrix of class `Matrix::dgCMatrix`. `dcSVM` also supports using sparse matrix as input. 
 
 
+```{r}
+dcsvm.model = dcSVM(x = ijcnn1[,-1], y = ijcnn1[,1], k = 10, max.levels = 1, seed = 1024,
+                    early = 1, gamma = 2, cost = 32, tolerance = 1e-2, m = 5000, scale = FALSE,
+                    valid.x = ijcnn1.t[,-1], valid.y = ijcnn1.t[,1])
+dcsvm.model$valid.score
+dcsvm.model$time$total.time
+```
 
+However, one should be careful when dealing with sparse matrix, especially when you need to scale the data. After you have scale the data, it could lose the sparsity and make the training process slower.
 
-
-
-
-
-
-
-
-
-
+```{r}
+dcsvm.model = dcSVM(x = ijcnn1[,-1], y = ijcnn1[,1], k = 10, max.levels = 1, seed = 1024,
+                    early = 1, gamma = 2, cost = 32, tolerance = 1e-2, m = 5000, scale = TRUE,
+                    valid.x = ijcnn1.t[,-1], valid.y = ijcnn1.t[,1])
+dcsvm.model$valid.score
+dcsvm.model$time$total.time
+```
 
 
 

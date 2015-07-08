@@ -409,7 +409,7 @@ function (x,
     if (is.null(cross)) stop("cross argument must not be NULL!")
     if (is.null(sparse)) stop("sparse argument must not be NULL!")
     if (is.null(probability)) stop("probability argument must not be NULL!")
-
+    
     cret <- .C ("svmtrain",
                 ## data
                 as.double  (if (sparse) x@ra else t(x)),

@@ -23,7 +23,9 @@ eucliDist= function(x, centers) {
 #' @param cluster.object the matrix of centers
 #' 
 kmeans.predict = function(x, cluster.object) {
-  assertMatrix(x)
+  #assertMatrix(x)
+  assertInt(nrow(x), lower = 1)
+  assertInt(ncol(x), lower = 1)
   centers = cluster.object$centers
   assertMatrix(centers)
   
@@ -88,8 +90,8 @@ sendMsg = function(..., verbose) {
 #' @param ... other parameters passing to \code{kernlab::kkmeans}
 #' 
 cluster.fun.kkmeans = function(x, centers, ...) {
-  # x = as.matrix(x)
-  assertMatrix(x)
+  x = as.matrix(x)
+  assertMatrix(x, min.rows = 1, min.cols = 1)
   # due to a wierd namespace problem i add this line
   # tmp = kernlab::kkmeans(as.matrix(iris[,-5]), centers, ...)
   args = list(x = x, centers = centers, ...)
@@ -121,6 +123,9 @@ cluster.fun.kkmeans = function(x, centers, ...) {
 #' @param cluster.object The result object from \code{kernlab::kkmeans}
 #' 
 cluster.predict.kkmeans = function(x, cluster.object) {
+  x = as.matrix(x)
+  assertMatrix(x, min.rows = 1, min.cols = 1)
+  
   kkmeans.res = cluster.object$kkmeans.res
   assertClass(kkmeans.res,'specc')
   
@@ -136,37 +141,6 @@ cluster.predict.kkmeans = function(x, cluster.object) {
   result = max.col(-dist.mat)
   assertInteger(result, lower = 1, upper = nrow(center.mat), len = nrow(x))
   return(result)
-}
-
-#' Directly assign alpha to svm 
-#' 
-#' @param x the data matrix
-#' @param nclass the total number of classes
-#' @param class_rank the rank of class that the input data matrix has
-#' 
-oneclass.svm = function(x, nclass, class_rank) {
-  n = nrow(x)
-  y = sample(nclass, n, replace = TRUE)
-  y = as.factor(y)
-  model = alphasvm(x, y, scale = FALSE)
-  model$index = 1:n
-  model$SV = x
-  model$tot.nSV = n
-  if (nclass == 2) {
-    if (class_rank==1) {
-      model$coefs = rep(model$cost,n)
-    } else {
-      model$coefs = rep(-model$cost,n)
-    }
-  } else {
-    if (class_rank==nclass) {
-      model$coefs = matrix(0, n, nclass-1)
-    } else {
-      model$coefs = matrix(-model$cost, n, nclass-1)
-      model$coefs[, class_rank] = model$cost
-    }
-  }
-  return(model)
 }
 
 
