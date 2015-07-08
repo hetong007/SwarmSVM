@@ -12,7 +12,12 @@
 #' @param kernel the kernel type: 0 for linear, 1 for polynomial, 2 for gaussian
 #' @param max.levels the maximum number of level
 #' @param early whether use early prediction
+#' @param scale whether to scale the data or not before the algorithm. We don't scale data in SVM.
 #' @param seed the random seed. Set it to \code{NULL} to randomize the model.
+#' @param valid.x the mxp validation data matrix.
+#' @param valid.y if provided, it will be used to calculate the validation score with \code{valid.metric}
+#' @param valid.metric the metric function for the validation result. By default it is the accuracy for classification.
+#'     Customized metric is acceptable.
 #' @param cluster.method The clusterign algorithm to use. Possible choices are 
 #' \itemize{
 #'     \item "kmeans" Algorithm from \code{stats::kmeans}
@@ -40,7 +45,9 @@
 #' @export
 #' 
 dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0, 
-                 seed = NULL, cluster.method = 'kmeans', 
+                 scale = TRUE, seed = NULL, 
+                 valid.x = NULL, valid.y = NULL, valid.metric = NULL,
+                 cluster.method = 'kmeans', 
                  cluster.fun = NULL, cluster.predict = NULL, ...) {
   
   # parameter check
@@ -83,6 +90,32 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
   num.lvls = length(unique(y))
   assertInt(num.lvls, lower = 2, upper = 16)
   alpha = matrix(0, n, num.lvls-1)
+  
+  total.time.point = proc.time()
+  time.point = proc.time()
+  
+  # Scaling Process
+  assertFlag(scale)
+  x.scaled.center = NULL
+  x.scaled.scale = NULL
+  if (length(scale) == 1)
+    scale = rep(scale, ncol(x))
+  if (any(scale)) {
+    scale = which(scale)
+    co = apply(x[,scale, drop = FALSE], 2, var) == 0
+    if (any(co)) {
+      warning(paste("Variable(s)",
+                    paste(co, sep = "", collapse = " and "),
+                    "constant. Cannot scale data.")
+      )
+      scale = rep(FALSE, ncol(x))
+    } else {
+      xtmp = scale(x[,scale])
+      x[,scale] = xtmp
+      x.scaled.center = attr(xtmp, 'scaled:center')
+      x.scaled.scale = attr(xtmp, 'scaled:scale')
+    }
+  }
   
   # clustering tree process
   sampleX.ind = sample(1:n,m)
@@ -153,6 +186,8 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
   if (max.levels<1)
     stop('no cluster applied.')
   
+  clustering.time = (proc.time()-time.point)[3]
+  time.point = proc.time()
   assertInt(early, lower = 0, upper = max.levels)
   
   # SVM train
@@ -214,13 +249,52 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
       svm.models = alphasvm(x = x, y = y, kernel = svm.kernel, alpha = alpha, ...)
     #})
   }
+  svm.time = (proc.time()-time.point)[3]
   # Result structure
+  scale.list = list(scale = scale,
+                    x.center = x.scaled.center,
+                    x.scale = x.scaled.scale)
   result = list(svm = svm.models,
                 early = early,
                 cluster.tree = cluster.tree,
                 cluster.fun = cluster.fun,
-                cluster.predict = cluster.predict)
+                cluster.predict = cluster.predict,
+                scale = scale.list)
   result = structure(result, class = "dcSVM")
+  
+  # Validation
+  validation.time = 0
+  if (!testNull(valid.x)) {
+    time.point = proc.time()
+    assertMatrix(valid.x, min.rows = 1, ncols = ncol(x))
+    if (testNull(valid.y)) {
+      warning("Target value for validation is not available.")
+      result$valid.pred = predict(result, valid.x)
+      result$valid.score = NULL
+    } else {
+      assertInteger(valid.y, len = nrow(valid.x))
+      if (testNull((valid.metric))) {
+        valid.metric = function(pred, truth) {
+          list(score = sum(pred==truth)/length(truth),
+               name = 'Accuracy')
+        }
+      }
+      assertFunction(valid.metric)
+      result$valid.pred = predict(result, valid.x)
+      valid.result = valid.metric(result$valid.pred, valid.y)
+      result$valid.score = valid.result$score
+      result$valid.metric.name = valid.result$name
+    }
+    validation.time = (proc.time()-time.point)[3]
+  }
+  total.time = (proc.time() - total.time.point)[3]
+  
+  time.record = list(clustering.time = clustering.time,
+                     svm.time = svm.time,
+                     validation.time = validation.time,
+                     total.time = total.time)
+  
+  result$time = time.record
   return(result)
 }
 
@@ -246,6 +320,13 @@ predict.dcSVM = function(object, newdata, ...) {
     return(fitted(object$svm))
   
   assertMatrix(newdata, min.rows = 1)
+  scale.info = object$scale
+  if (any(scale.info$scale)) {
+    assertInteger(scale.info$scale)
+    newdata[, scale.info$scale] = scale(newdata[, scale.info$scale], 
+                                        center = scale.info$x.center,
+                                        scale = scale.info$x.scale)
+  }
   
   # Assign label
   if (object$early > 0) {

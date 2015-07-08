@@ -4,7 +4,8 @@
 \alias{dcSVM}
 \title{Divide-and-Conquer kernel SVM (DC-SVM)}
 \usage{
-dcSVM(x, y, k = 4, m, kernel = 3, max.levels, early = 0, seed = NULL,
+dcSVM(x, y, k = 4, m, kernel = 3, max.levels, early = 0, scale = TRUE,
+  seed = NULL, valid.x = NULL, valid.y = NULL, valid.metric = NULL,
   cluster.method = "kmeans", cluster.fun = NULL, cluster.predict = NULL,
   ...)
 }
@@ -26,7 +27,16 @@ and can be a 1xn matrix or a simple vector.}
 
 \item{early}{whether use early prediction}
 
+\item{scale}{whether to scale the data or not before the algorithm. We don't scale data in SVM.}
+
 \item{seed}{the random seed. Set it to \code{NULL} to randomize the model.}
+
+\item{valid.x}{the mxp validation data matrix.}
+
+\item{valid.y}{if provided, it will be used to calculate the validation score with \code{valid.metric}}
+
+\item{valid.metric}{the metric function for the validation result. By default it is the accuracy for classification.
+Customized metric is acceptable.}
 
 \item{cluster.method}{The clusterign algorithm to use. Possible choices are
 \itemize{
