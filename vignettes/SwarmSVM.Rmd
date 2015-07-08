@@ -1,5 +1,5 @@
 ---
-title: "Swarm SVM"
+title: "SwarmSVM"
 output: 
   rmarkdown::html_vignette:
     number_sections: yes
@@ -61,7 +61,34 @@ svmguide1 = svmguide1[[1]]
 
 From now on, we have the training data set `svmguide1` and the test data set `svmguide1.t`.
 
-Clustered support vector machines
+Clustering Algorithm
+==================================
+
+In our pacakge, there are two main algorithms requiring clustering algorithm for the input data. Therefore we provide some clustering algorithms for users to choose from. Users can also implement their own functions and pass it to our algorithm.
+
+#### Default Algorithms
+
+We now provide three algorithms existing in R:
+
+- The default kmeans algorithm `stats::kmeans`, named as "kmeans";
+- A possibly kmeans algorithm from `RcppMLPACK::mlKmeans`, named as "mlKmeans";
+- The kernel kmeans algorithm `kernlab::kkmeans`, named as "kernkmeans".
+
+In `clusterSVM` and `dcSVM`, we offer an argument `cluster.method`, you could choose one of the three algorithms and pass its name to the argument.
+
+#### Customization
+
+We also offer arguments for users to pass their own implementation of the clustering algorithm: `cluster.fun` and `cluster.predict`.
+
+`cluster.fun` is the clustering training function. It takes a function requiring the data and number of centers as the two main arguments. The output of this function should be an list object of the clustering result, while it has two fields:
+
+1. `object$cluster` as the clustering label on the input data.
+2. `object$centers` as the clustering center matrix.
+
+`cluster.predict` is the predicting algorithm on the trained clustering object. It takes a function requiring the data and trained clustering object from `cluster.fun` as the two main arguments. The output of this function should be simply a vector of tue clustering label on the input data.
+
+
+Clustered Support Vector Machines
 ==================================
 
 #### Algorithm
@@ -145,7 +172,33 @@ Notice the accuracy is improved by 1% but the training time is increased drastic
 
 
 
+A Divide-and-Conquer Support Vector Machine
+=============================================
 
+The algorithm could be described as the following:
+
+**Training**
+
+1. We cluster the data in a recursive manner: 
+    - Cluster the data in `k` groups.
+    - In each groups, we keep cluster the data into `k` finer groups.
+    - Repeat for `max.levels` times
+2. At the finest level, we train svm models
+3. At the `j`-th group on level `l`, we
+    - Concatenate the `alpha` (coefficient on support vector) value from the subgroups of the `j`-th group
+    - Train the svm model with the `alpha` value initialized
+4. Fine tune the `alpha` values by training an svm on all the support vectors of the whole data set.
+5. Train the final svm model with the `alpha` value
+
+**Test**
+
+There are two ways to do prediction.
+
+1. Early Prediction
+    - In early predicton on level `l`, we predict the clustering label at level `l` for the new input data.
+    - For data points belong to each subgroup, we make prediction using the corresponding svm model for this subgroup.
+2. Exact Prediction
+    - We predict with the final svm model on the new input data.
 
 
 
