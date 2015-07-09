@@ -203,14 +203,14 @@ clusterSVM = function(x, y, centers = NULL, cluster.object = NULL, lambda = 1, s
   k = nrow(cluster.centers)
   
   clustering.time = (proc.time()-time.point)[3]
-  sendMsg('Time for Clustering: ',clustering.time, ' secs\n', verbose = verbose)
+  sendMsg('Time for Clustering: ',clustering.time, ' secs', verbose = verbose)
   time.point = proc.time()
   
   # Transformation
   tilde.x = csvmTransform(x, lambda, cluster.label, sparse = sparse)
   
   transform.time = (proc.time()-time.point)[3]
-  sendMsg('Time for Transforming: ',transform.time, ' secs\n', verbose = verbose)
+  sendMsg('Time for Transforming: ',transform.time, ' secs', verbose = verbose)
   time.point = proc.time()
   
   # Training
@@ -220,7 +220,7 @@ clusterSVM = function(x, y, centers = NULL, cluster.object = NULL, lambda = 1, s
                          wi = wi, cross = 0, verbose = (verbose>=2))
   
   liblinear.time = (proc.time()-time.point)[3]
-  sendMsg('Time for Liblinear: ', liblinear.time, ' secs\n', verbose = verbose)
+  sendMsg('Time for Liblinear: ', liblinear.time, ' secs', verbose = verbose)
   
   cluster.svm.result = list(svm = svm.result, 
                             lambda = lambda,
@@ -259,14 +259,14 @@ clusterSVM = function(x, y, centers = NULL, cluster.object = NULL, lambda = 1, s
     }
     
     validation.time = (proc.time()-time.point)[3]
-    sendMsg('Time for Validation: ', validation.time, ' secs\n', verbose = verbose)
+    sendMsg('Time for Validation: ', validation.time, ' secs', verbose = verbose)
   }
   
   total.time = (proc.time()-total.time.point)[3]
   sendMsg('\nTotal Time: ', total.time, ' secs\n', verbose = verbose)
   if (!is.null(cluster.svm.result$valid.score))
     sendMsg(cluster.svm.result$valid.metric.name, ' Score: ', 
-            cluster.svm.result$valid.score, ' \n', verbose = verbose)
+            cluster.svm.result$valid.score, verbose = verbose)
   
   time.record = list()
   time.record$clustering.time = clustering.time

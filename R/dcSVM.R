@@ -14,6 +14,8 @@
 #' @param early whether use early prediction
 #' @param scale whether to scale the data or not before the algorithm. We don't scale data in SVM.
 #' @param seed the random seed. Set it to \code{NULL} to randomize the model.
+#' @param mute a logical value indicating whether to print training information from svm.
+#' @param verbose a logical value indicating whether to print information of training.
 #' @param valid.x the mxp validation data matrix.
 #' @param valid.y if provided, it will be used to calculate the validation score with \code{valid.metric}
 #' @param valid.metric the metric function for the validation result. By default it is the accuracy for classification.
@@ -46,7 +48,7 @@
 #' @export
 #' 
 dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0, 
-                 scale = TRUE, seed = NULL, 
+                 scale = TRUE, seed = NULL, mute = TRUE, verbose = TRUE,
                  valid.x = NULL, valid.y = NULL, valid.metric = NULL,
                  cluster.method = 'kmeans', 
                  cluster.fun = NULL, cluster.predict = NULL, ...) {
@@ -193,6 +195,8 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
     stop('no cluster applied.')
   
   clustering.time = (proc.time()-time.point)[3]
+  sendMsg("Finished clustering process in ", clustering.time, ' secs.', 
+          verbose = verbose)
   time.point = proc.time()
   assertInt(early, lower = 0, upper = max.levels)
   
@@ -217,12 +221,14 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
         # train the svm with given support vectors
         if (lvl == max.levels || sum(support[ind])==0) {
           #BBmisc::suppressAll({
-            svm.model = alphasvm(x = x[ind,], y = y[ind], kernel = svm.kernel, ...)
+            muteFun({svm.model = alphasvm(x = x[ind,], y = y[ind], kernel = svm.kernel, ...)},
+                    mute = mute)
           #})
         } else {
           #BBmisc::suppressAll({
-            svm.model = alphasvm(x = x[ind,], y = y[ind], kernel = svm.kernel, 
-                                 alpha = alpha[ind,], ...) 
+            muteFun({svm.model = alphasvm(x = x[ind,], y = y[ind], kernel = svm.kernel, 
+                                          alpha = alpha[ind,], ...)},
+                    mute = mute)
           #})
         }
         svm.models[[clst]] = svm.model
@@ -232,10 +238,12 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
           new.alpha[sv.ind,] = svm.model$coefs
         }
       }
-      # cat(clst,'\r')
+      #cat(clst,'\n')
+      #if (clst == 39) browser()
     }
     support = new.support
     alpha = new.alpha
+    sendMsg("Finished training in level ", lvl, verbose = verbose)
     if (early>0 && early<=lvl)
       break
   }
@@ -243,8 +251,9 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
     # Refine
     ind = which(support)
     #BBmisc::suppressAll({
-      svm.models = alphasvm(x = x[ind,], y = y[ind], kernel = svm.kernel, 
-                            alpha = alpha[ind,], ...)
+    muteFun({svm.models = alphasvm(x = x[ind,], y = y[ind], kernel = svm.kernel, 
+                            alpha = alpha[ind,], ...)},
+            mute = mute)
     #})
     sv.ind = ind[svm.models$index]
     alpha = matrix(0,n,num.lvls-1)
@@ -252,10 +261,13 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
     
     # Final
     #BBmisc::suppressAll({
-      svm.models = alphasvm(x = x, y = y, kernel = svm.kernel, alpha = alpha, ...)
+    muteFun({svm.models = alphasvm(x = x, y = y, kernel = svm.kernel, alpha = alpha, ...)},
+            mute = mute)
     #})
   }
   svm.time = (proc.time()-time.point)[3]
+  sendMsg("Finished svm training process in ", svm.time, ' secs.', 
+          verbose = verbose)
   # Result structure
   scale.list = list(scale = scale,
                     x.center = x.scaled.center,
@@ -296,6 +308,8 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
       result$valid.metric.name = valid.result$name
     }
     validation.time = (proc.time()-time.point)[3]
+    sendMsg("Finished validation process in ", validation.time, ' secs.', 
+            verbose = verbose)
   }
   total.time = (proc.time() - total.time.point)[3]
   
@@ -305,6 +319,8 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
                      total.time = total.time)
   
   result$time = time.record
+  sendMsg("Finished the whole process in ", total.time, ' secs.', 
+          verbose = verbose)
   return(result)
 }
 

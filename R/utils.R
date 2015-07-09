@@ -83,6 +83,14 @@ sendMsg = function(..., verbose) {
     message(...)
 }
 
+muteFun = function(expr, mute = FALSE) {
+  if (mute) {
+    BBmisc::suppressAll(expr)
+  } else {
+    expr
+  }
+}
+
 #' Wrapper function for kernal kmeans
 #' 
 #' @param x the input data

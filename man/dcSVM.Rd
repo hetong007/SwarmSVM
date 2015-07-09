@@ -5,9 +5,9 @@
 \title{Divide-and-Conquer kernel SVM (DC-SVM)}
 \usage{
 dcSVM(x, y, k = 4, m, kernel = 3, max.levels, early = 0, scale = TRUE,
-  seed = NULL, valid.x = NULL, valid.y = NULL, valid.metric = NULL,
-  cluster.method = "kmeans", cluster.fun = NULL, cluster.predict = NULL,
-  ...)
+  seed = NULL, mute = TRUE, verbose = TRUE, valid.x = NULL,
+  valid.y = NULL, valid.metric = NULL, cluster.method = "kmeans",
+  cluster.fun = NULL, cluster.predict = NULL, ...)
 }
 \arguments{
 \item{x}{the nxp training data matrix. Could be a matrix or a sparse matrix object.}
@@ -30,6 +30,10 @@ and can be a 1xn matrix or a simple vector.}
 \item{scale}{whether to scale the data or not before the algorithm. We don't scale data in SVM.}
 
 \item{seed}{the random seed. Set it to \code{NULL} to randomize the model.}
+
+\item{mute}{a logical value indicating whether to print training information from svm.}
+
+\item{verbose}{a logical value indicating whether to print information of training.}
 
 \item{valid.x}{the mxp validation data matrix.}
 

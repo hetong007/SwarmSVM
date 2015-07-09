@@ -276,7 +276,7 @@ dcsvm.model$valid.score
 dcsvm.model$time$total.time
 ```
 
-However, one should be careful when dealing with sparse matrix, especially when you need to scale the data. After you have scale the data, it could lose the sparsity and make the training process slower.
+However, one should be careful when dealing with sparse matrix, especially when you want to scale the data. After you have scale the data, it could lose the sparsity and make the training process slower.
 
 ```{r}
 dcsvm.model = dcSVM(x = ijcnn1[,-1], y = ijcnn1[,1], k = 10, max.levels = 1, seed = 1024,

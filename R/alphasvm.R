@@ -466,6 +466,15 @@ function (x,
     } else {
       cret$index = NULL
     }
+    if (is.null(cret$index) || cret$index == 0) {
+      SV = NULL
+    } else {
+      if (sparse) {
+        SV = SparseM::t(SparseM::t(x[cret$index,]))
+      } else {
+        SV = t(t(x[cret$index,]))
+      }
+    }
 
     ret <- list (
                  call     = match.call(),
@@ -487,8 +496,7 @@ function (x,
                  tot.nSV  = cret$nr, #total number of sv
                  nSV      = cret$nSV[1:cret$nclasses], #number of SV in diff. classes
                  labels   = cret$label[1:cret$nclasses], #labels of the SVs.
-                 SV       = if (sparse) SparseM::t(SparseM::t(x[cret$index,]))
-                 else t(t(x[cret$index,])), #copy of SV
+                 SV       = SV, #copy of SV
                  index    = cret$index,  #indexes of sv in x
                  ##constants in decision functions
                  rho      = cret$rho[1:(cret$nclasses * (cret$nclasses - 1) / 2)],

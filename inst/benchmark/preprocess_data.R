@@ -83,6 +83,14 @@ download.file('http://www.sfu.ca/~hetongh/data/ijcnn1.t',
               'ijcnn1.t')
 ijcnn1 = read.libsvm('ijcnn1.train')
 ijcnn1.t = read.libsvm('ijcnn1.t')
+# for (i in 2:ncol(ijcnn1)) {
+#   if (sd(ijcnn1[,i])>0)
+#     ijcnn1[,i] = (ijcnn1[,i]-min(ijcnn1[,i]))/(max(ijcnn1[,i])-min(ijcnn1[,i]))
+# }
+# for (i in 2:ncol(ijcnn1.t)) {
+#   if (sd(ijcnn1.t[,i])>0)
+#     ijcnn1.t[,i] = (ijcnn1.t[,i]-min(ijcnn1.t[,i]))/(max(ijcnn1.t[,i])-min(ijcnn1.t[,i]))
+# }
 ijcnn1 = list(ijcnn1,ijcnn1.t)
 save(ijcnn1,file='ijcnn1.dcsvm.RData',compress = 'xz')
 
