@@ -12,6 +12,7 @@
 #' @param kernel the kernel type: 0 for linear, 1 for polynomial, 2 for gaussian
 #' @param max.levels the maximum number of level
 #' @param early whether use early prediction
+#' @param final.training whether train the svm over the entire data again. usually not needed.
 #' @param scale whether to scale the data or not before the algorithm. We don't scale data in SVM.
 #' @param seed the random seed. Set it to \code{NULL} to randomize the model.
 #' @param mute a logical value indicating whether to print training information from svm.
@@ -47,7 +48,8 @@
 #' 
 #' @export
 #' 
-dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0, 
+dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, 
+                 early = 0, final.training = FALSE,
                  scale = TRUE, seed = NULL, mute = TRUE, verbose = TRUE,
                  valid.x = NULL, valid.y = NULL, valid.metric = NULL,
                  cluster.method = 'kmeans', 
@@ -255,15 +257,17 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
                             alpha = alpha[ind,], ...)},
             mute = mute)
     #})
-    sv.ind = ind[svm.models$index]
-    alpha = matrix(0,n,num.lvls-1)
-    alpha[sv.ind,] = svm.models$coefs
-    
-    # Final
-    #BBmisc::suppressAll({
-    muteFun({svm.models = alphasvm(x = x, y = y, kernel = svm.kernel, alpha = alpha, ...)},
-            mute = mute)
-    #})
+    if (final.training) {
+      sv.ind = ind[svm.models$index]
+      alpha = matrix(0,n,num.lvls-1)
+      alpha[sv.ind,] = svm.models$coefs
+      
+      # Final
+      #BBmisc::suppressAll({
+      muteFun({svm.models = alphasvm(x = x, y = y, kernel = svm.kernel, alpha = alpha, ...)},
+              mute = mute)
+      #})
+    }
   }
   svm.time = (proc.time()-time.point)[3]
   sendMsg("Finished svm training process in ", svm.time, ' secs.', 

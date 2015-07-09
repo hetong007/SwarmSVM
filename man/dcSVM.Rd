@@ -4,10 +4,11 @@
 \alias{dcSVM}
 \title{Divide-and-Conquer kernel SVM (DC-SVM)}
 \usage{
-dcSVM(x, y, k = 4, m, kernel = 3, max.levels, early = 0, scale = TRUE,
-  seed = NULL, mute = TRUE, verbose = TRUE, valid.x = NULL,
-  valid.y = NULL, valid.metric = NULL, cluster.method = "kmeans",
-  cluster.fun = NULL, cluster.predict = NULL, ...)
+dcSVM(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
+  final.training = FALSE, scale = TRUE, seed = NULL, mute = TRUE,
+  verbose = TRUE, valid.x = NULL, valid.y = NULL, valid.metric = NULL,
+  cluster.method = "kmeans", cluster.fun = NULL, cluster.predict = NULL,
+  ...)
 }
 \arguments{
 \item{x}{the nxp training data matrix. Could be a matrix or a sparse matrix object.}
@@ -26,6 +27,8 @@ and can be a 1xn matrix or a simple vector.}
 \item{max.levels}{the maximum number of level}
 
 \item{early}{whether use early prediction}
+
+\item{final.training}{whether train the svm over the entire data again. usually not needed.}
 
 \item{scale}{whether to scale the data or not before the algorithm. We don't scale data in SVM.}
 

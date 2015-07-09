@@ -45,13 +45,14 @@ dcSVMBenchmark(x = ijcnn1[,-1], y = ijcnn1[,1], seed = 1024,
 dcSVMBenchmark(x = ijcnn1[,-1], y = ijcnn1[,1], seed = 1024,
                gamma = 2, cost = 2, tolerance = 1e-2, m = 5000, scale = FALSE,
                valid.x = ijcnn1.t[,-1], valid.y = ijcnn1.t[,1])
-
+# Early Score Early Training     Early Time    Exact Score Exact Training     Exact Time 
+# 0.9879500      8.6720000     15.2110000      0.9883753     41.9140000     78.0440000 
 
 dcSVMBenchmark(x = ijcnn1[,-1], y = ijcnn1[,1], seed = 1024,
                gamma = 2, cost = 32, tolerance = 1e-2, m = 5000, scale = FALSE,
                valid.x = ijcnn1.t[,-1], valid.y = ijcnn1.t[,1])
 # Early Score Early Training     Early Time    Exact Score Exact Training     Exact Time 
-# 0.9840569      6.6290000     11.5400000      0.9841005     68.2430000     89.2960000 
+# 0.9840569      6.3900000     10.2510000      0.9840460     24.4640000     45.1130000 
 
 dcSVMBenchmark(x = ijcnn1[,-1], y = ijcnn1[,1], seed = 1024,
                gamma = 2^6, cost = 2^10, tolerance = 1e-2, m = 5000, scale = FALSE,
