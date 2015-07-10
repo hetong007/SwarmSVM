@@ -13,12 +13,12 @@ ijcnn1 = ijcnn1[[1]]
 ##############
 
 dcSVMBenchmark = function(...) {
-  dcsvm.model = dcSVM(..., k = 10, max.levels = 1, early = 1)
+  dcsvm.model = dcSVM(..., pre.scale = FALSE, k = 10, max.levels = 1, early = 1)
   early.score = dcsvm.model$valid.score
   early.training = dcsvm.model$time$total.time - dcsvm.model$time$validation.time
   early.time = dcsvm.model$time$total.time
   cat('Early Training Finished.\n')
-  dcsvm.model = dcSVM(..., k = 4, max.levels = 4, early = 0)
+  dcsvm.model = dcSVM(..., k = 4, pre.scale = FALSE, max.levels = 4, early = 0)
   exact.score = dcsvm.model$valid.score
   exact.training = dcsvm.model$time$total.time - dcsvm.model$time$validation.time
   exact.time = dcsvm.model$time$total.time

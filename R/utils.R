@@ -78,6 +78,19 @@ cluster.predict.mlpack = function(x, cluster.object) {
   return(kmeans.predict(x, cluster.object))
 }
 
+scaleBySD = function(x, sds) {
+  assertInt(ncol(x), lower = 1)
+  assertInt(nrow(x), lower = 1)
+  if (testClass(x, 'dgCMatrix')) {
+    x = x %*% Matrix::Diagonal(x = 1/sds)
+  } else {
+    for (i in 1:ncol(x)) {
+      x[,i] = x[,i]/sds[i]
+    }
+  }
+  return(x)
+}
+
 sendMsg = function(..., verbose) {
   if (verbose)
     message(...)
@@ -139,14 +152,26 @@ cluster.predict.kkmeans = function(x, cluster.object) {
   
   kern.fun = kkmeans.res@kernelf@.Data
   center.mat = kkmeans.res@centers
-  kern.mat = kernlab::kernelMatrix(kern.fun, x, center.mat)
-  kern.c = diag(kernelMatrix(kern.fun,
-                             kkmeans.res@centers,
-                             kkmeans.res@centers))
-  dist.mat = t(kern.c-2*t(kern.mat))
+  n = nrow(x)
+  result = integer(n)
+  flag = TRUE
+  ind = 1:min(n, 20000)
 
-  result = list()
-  result = max.col(-dist.mat)
+  while (flag) {
+    
+    if (max(ind) == n)
+      flag = FALSE
+    
+    kern.mat = kernlab::kernelMatrix(kern.fun, x[ind,,drop = FALSE], center.mat)
+    kern.c = diag(kernelMatrix(kern.fun,
+                               kkmeans.res@centers,
+                               kkmeans.res@centers))
+    dist.mat = t(kern.c-2*t(kern.mat))
+    result[ind] = max.col(-dist.mat)
+    
+    ind = (max(ind)+1):min(max(ind)+20000, n)
+    
+  }
   assertInteger(result, lower = 1, upper = nrow(center.mat), len = nrow(x))
   return(result)
 }
