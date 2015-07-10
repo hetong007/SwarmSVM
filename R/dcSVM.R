@@ -13,7 +13,8 @@
 #' @param max.levels the maximum number of level
 #' @param early whether use early prediction
 #' @param final.training whether train the svm over the entire data again. usually not needed.
-#' @param scale whether to scale the data or not before the algorithm. We don't scale data in SVM.
+#' @param pre.scale either a logical value indicating whether to scale the data or not, or an integer vector specifying the columns. 
+#'        We don't scale data in SVM seperately.
 #' @param seed the random seed. Set it to \code{NULL} to randomize the model.
 #' @param mute a logical value indicating whether to print training information from svm.
 #' @param verbose a logical value indicating whether to print information of training.
@@ -50,7 +51,7 @@
 #' 
 dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, 
                  early = 0, final.training = FALSE,
-                 scale = TRUE, seed = NULL, mute = TRUE, verbose = TRUE,
+                 pre.scale = FALSE, seed = NULL, mute = TRUE, verbose = TRUE,
                  valid.x = NULL, valid.y = NULL, valid.metric = NULL,
                  cluster.method = 'kmeans', 
                  cluster.fun = NULL, cluster.predict = NULL, ...) {
@@ -102,13 +103,22 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels,
   time.point = proc.time()
   
   # Scaling Process
-  assertFlag(scale)
-  x.scaled.center = NULL
-  x.scaled.scale = NULL
-  if (length(scale) == 1)
-    scale = rep(scale, ncol(x))
-  if (any(scale)) {
-    scale = which(scale)
+  #assertFlag(pre.scale)
+  if (testFlag(pre.scale)) {
+    if (pre.scale)
+      scale = 1:ncol(x)
+    else
+      scale = NULL
+  } else if (testInteger(pre.scale, lower = 1, upper = ncol(x), 
+                         min.len = 1, max.len = ncol(x))) {
+    scale = unique(pre.scale)
+  } else {
+    stop("pre.scale can only be a logical value or an integer vector.")
+  }
+  x.scaled.sd = NULL
+  if (!testNull(scale)) {
+    assertInteger(scale, lower = 1, upper = ncol(x), 
+                  min.len = 1, max.len = ncol(x))
     co = apply(x[,scale, drop = FALSE], 2, var) == 0
     if (any(co)) {
       ind = which(co)
@@ -120,10 +130,14 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels,
       scale = setdiff(scale, ind)
     }
     if (length(scale)>0) {
-      xtmp = scale(x[,scale])
-      x[,scale] = xtmp
-      x.scaled.center = attr(xtmp, 'scaled:center')
-      x.scaled.scale = attr(xtmp, 'scaled:scale')
+      sds = rep(0, length(scale))
+      for (i in 1:length(scale)) {
+        sds[i] = sd(x[,scale[i],drop = FALSE])
+      }
+      x[,scale] = scaleBySD(x[,scale,drop = FALSE], sds)
+      # x.scaled.center = attr(xtmp, 'scaled:center')
+      x.scaled.sd = sds
+      assertNumeric(x.scaled.sd, len = length(scale))
     }
   }
   
@@ -274,8 +288,7 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels,
           verbose = verbose)
   # Result structure
   scale.list = list(scale = scale,
-                    x.center = x.scaled.center,
-                    x.scale = x.scaled.scale)
+                    x.scale = x.scaled.sd)
   result = list(svm = svm.models,
                 early = early,
                 cluster.tree = cluster.tree,
@@ -353,11 +366,10 @@ predict.dcSVM = function(object, newdata, ...) {
   assertInt(nrow(newdata), lower = 1)
   assertInt(ncol(newdata), lower = 1)
   scale.info = object$scale
-  if (any(scale.info$scale)) {
+  if (!testNull(scale.info$scale)) {
     assertInteger(scale.info$scale)
-    newdata[, scale.info$scale] = scale(newdata[, scale.info$scale], 
-                                        center = scale.info$x.center,
-                                        scale = scale.info$x.scale)
+    newdata[, scale.info$scale] = scaleBySD(newdata[, scale.info$scale],
+                                            scale.info$x.scale)
   }
   
   # Assign label
