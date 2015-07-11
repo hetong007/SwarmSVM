@@ -5,7 +5,7 @@
 \title{Divide-and-Conquer kernel SVM (DC-SVM)}
 \usage{
 dcSVM(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
-  final.training = FALSE, pre.scale = FALSE, seed = NULL, mute = TRUE,
+  final.training = FALSE, pre.scale = FALSE, seed = NULL,
   verbose = TRUE, valid.x = NULL, valid.y = NULL, valid.metric = NULL,
   cluster.method = "kmeans", cluster.fun = NULL, cluster.predict = NULL,
   ...)
@@ -34,8 +34,6 @@ and can be a 1xn matrix or a simple vector.}
 We don't scale data in SVM seperately.}
 
 \item{seed}{the random seed. Set it to \code{NULL} to randomize the model.}
-
-\item{mute}{a logical value indicating whether to print training information from svm.}
 
 \item{verbose}{a logical value indicating whether to print information of training.}
 

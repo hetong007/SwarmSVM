@@ -4,7 +4,9 @@
 \alias{gaterSVM}
 \title{Mixture SVMs with gater function}
 \usage{
-gaterSVM(x, y, m, c = 1, max.iter, hidden = 5, learningrate = 0.01, ...)
+gaterSVM(x, y, m, c = 1, max.iter, hidden = 5, learningrate = 0.01,
+  seed = NULL, valid.x = NULL, valid.y = NULL, valid.metric = NULL,
+  verbose = FALSE, ...)
 }
 \arguments{
 \item{x}{the nxp training data matrix. Could be a matrix or a sparse matrix object.}
@@ -24,6 +26,17 @@ the number of samples in each subset.}
 \item{hidden}{the number of neurons on the hidden layer}
 
 \item{learningrate}{the learningrate for the back propagation}
+
+\item{seed}{the random seed. Set it to \code{NULL} to randomize the model.}
+
+\item{valid.x}{the mxp validation data matrix.}
+
+\item{valid.y}{if provided, it will be used to calculate the validation score with \code{valid.metric}}
+
+\item{valid.metric}{the metric function for the validation result. By default it is the accuracy for classification.
+Customized metric is acceptable.}
+
+\item{verbose}{a logical value indicating whether to print information of training.}
 
 \item{...}{other parameters passing to \code{neuralnet}}
 }

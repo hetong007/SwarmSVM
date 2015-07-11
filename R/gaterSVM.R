@@ -12,6 +12,12 @@
 #' @param max.iter the number of iterations
 #' @param hidden the number of neurons on the hidden layer
 #' @param learningrate the learningrate for the back propagation
+#' @param seed the random seed. Set it to \code{NULL} to randomize the model.
+#' @param valid.x the mxp validation data matrix.
+#' @param valid.y if provided, it will be used to calculate the validation score with \code{valid.metric}
+#' @param valid.metric the metric function for the validation result. By default it is the accuracy for classification.
+#'     Customized metric is acceptable.
+#' @param verbose a logical value indicating whether to print information of training.
 #' @param ... other parameters passing to \code{neuralnet}
 #' 
 #' @examples
@@ -27,16 +33,29 @@
 #' 
 #' @export
 #' 
-gaterSVM = function(x, y, m, c = 1, max.iter, hidden = 5, learningrate = 0.01, ...) {
+gaterSVM = function(x, y, m, c = 1, max.iter, hidden = 5, learningrate = 0.01, seed = NULL,
+                    valid.x = NULL, valid.y = NULL, valid.metric = NULL, verbose = FALSE, ...) {
+  
+  total.time.point = proc.time()
+  
+  if (!testNull(seed))
+    set.seed(seed)
+  
+  assertInt(nrow(x), lower = 1)
+  assertInt(ncol(x), lower = 1)
   n = nrow(x)
-  S = matrix(0, n, m)
 
+  assertVector(y, len = n)
+  assertInt(m, lower = 1, upper = n)
+  assertInt(c, lower = 0)
+  assertInt(max.iter, lower = 1)
+  assertInt(hidden, lower = 0)
+  assertNumber(learningrate, lower = 1e-8)
   y = as.factor(y)
   if (length(levels(y))!=2)
     stop("Only binary classification is supported")
   y = 2*as.integer(y)-3
   all.data = data.frame(y = as.factor(y), x = x)
-  
   
   # Positive indices
   shuf = sample(which(y == 1))
@@ -66,29 +85,33 @@ gaterSVM = function(x, y, m, c = 1, max.iter, hidden = 5, learningrate = 0.01, .
   
   stopCondition = FALSE
   iter = 1
+  S = matrix(0, n, m)
+  
+  
+  svm.time = NULL
+  gater.time = NULL
   
   while (!stopCondition) {
     expert = vector(m, mode = 'list')
+    time.point = proc.time()
     for (i in 1:m) {
       sub.data = data.frame(y = as.factor(y[sub.ind[[i]]]), x = x[sub.ind[[i]],])
-      BBmisc::suppressAll({
-        #expert[[i]] = e1071::svm(x = x[sub.ind[[i]],], y = as.factor(y[sub.ind[[i]]]))
-        #expert[[i]] = e1071::svm(y~., data = sub.data, probability = TRUE)
-        expert[[i]] = glm(y~., data = sub.data, family = binomial)
-      })
-      S[,i] = predict(expert[[i]], all.data)
-      cat('Finish',i,'th expert.\r')
-      #pred = e1071:::predict.svm(expert[[i]], all.data, probability = TRUE)
-      #S[,i] = attr(pred, 'probabilities')[,1]
+      expert[[i]] = alphasvm(y~., data = sub.data, probability = TRUE)
+      S[,i] = predict(expert[[i]], all.data, probability = TRUE)
+      sendMsg('Finished training for expert ', i, verbose = verbose)
     }
-    cat('\n')
-    # S = 2*S-3
+    svm.time[iter] = (proc.time()-time.point)[3]
+    sendMsg('Experts Training Time: ',svm.time[iter], verbose = verbose)
     
     # Train weight
+    time.point = proc.time()
     gater.model = gater(x = x, y = y, S = S, hidden = hidden, 
                         learningrate = learningrate, ...)
     W = predict(gater.model, x)
-    cat('Finish gater training.\n')
+    sendMsg('Finish gater training.', verbose = verbose)
+    gater.time[iter] = (proc.time()-time.point)[3]
+    sendMsg('Gater Neural Net Training Time: ', gater.time[iter], verbose = verbose)
+    
     # Re-arrange vectors
     sub.assign = rep(0,n)
     sub.num = rep(0, m)
@@ -111,6 +134,45 @@ gaterSVM = function(x, y, m, c = 1, max.iter, hidden = 5, learningrate = 0.01, .
   result = list(expert = expert,
                 gater = gater.model)
   result = structure(result, class = "gaterSVM")
+  
+  # Validation
+  validation.time = 0
+  if (!testNull(valid.x)) {
+    time.point = proc.time()
+    # assertMatrix(valid.x, min.rows = 1, ncols = ncol(x))
+    assertClass(valid.x, classes = class(x))
+    assertInt(nrow(valid.x), lower = 1)
+    assertInt(ncol(valid.x), lower = 1)
+    if (testNull(valid.y)) {
+      warning("Target value for validation is not available.")
+      result$valid.pred = predict(result, valid.x)
+      result$valid.score = NULL
+    } else {
+      assertVector(valid.y, len = nrow(valid.x))
+      if (testNull((valid.metric))) {
+        valid.metric = function(pred, truth) {
+          score = sum(diag(table(pred, truth)))/length(truth)
+          list(score = score,
+               name = 'Accuracy')
+        }
+      }
+      assertFunction(valid.metric)
+      result$valid.pred = predict(result, valid.x)
+      valid.result = valid.metric(result$valid.pred, valid.y)
+      result$valid.score = valid.result$score
+      result$valid.metric.name = valid.result$name
+    }
+    validation.time = (proc.time()-time.point)[3]
+    sendMsg("Finished validation process in ", validation.time, ' secs.', 
+            verbose = verbose)
+  }
+  
+  total.time = (proc.time()-total.time.point)[3]
+  time.list = list(svm.time = svm.time,
+                   gater.time = gater.time,
+                   validation.time = validation.time,
+                   total.time = total.time)
+  result$time = time
   return(result)
 }
 
@@ -129,8 +191,13 @@ gaterSVM = function(x, y, m, c = 1, max.iter, hidden = 5, learningrate = 0.01, .
 #' @export
 #' 
 predict.gaterSVM = function(object, newdata, ...) {
+  assertClass(object, "gaterSVM")
+  assertInt(nrow(newdata), lower = 1)
+  
   n = nrow(newdata)
   m = length(object$expert)
+  assertInt(m)
+  
   S = matrix(0, n, m)
   newdata = data.frame(x = newdata)
   for (i in 1:m) {

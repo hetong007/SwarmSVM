@@ -46,6 +46,7 @@
 #'     and included in the model or not (default: \code{TRUE})
 #' @param alpha Initial values for the coefficients (default: \code{NULL}). 
 #'     A numerical vector for binary classification or a nx(k-1) matrix for a k-class-classification problem.
+#' @param mute a logical value indicating whether to print training information from svm.
 #' @param probability logical indicating whether the model should 
 #'     allow for probability predictions.
 #' @param ... additional parameters for the low level fitting function \code{svm.default}
@@ -202,6 +203,7 @@ function (x,
           probability = FALSE,
           fitted      = TRUE,
           alpha       = NULL,
+          mute        = TRUE,
           ...,
           subset,
           na.action = na.omit)
@@ -410,54 +412,56 @@ function (x,
     if (is.null(sparse)) stop("sparse argument must not be NULL!")
     if (is.null(probability)) stop("probability argument must not be NULL!")
     
-    cret <- .C ("svmtrain",
-                ## data
-                as.double  (if (sparse) x@ra else t(x)),
-                as.integer (nr), as.integer(ncol(x)),
-                as.double  (y),
-                ## sparse index info
-                as.integer (if (sparse) x@ia else 0),
-                as.integer (if (sparse) x@ja else 0),
-
-                ## parameters
-                as.integer (type),
-                as.integer (kernel),
-                as.integer (degree),
-                as.double  (gamma),
-                as.double  (coef0),
-                as.double  (cost),
-                as.double  (nu),
-                as.integer (weightlabels),
-                as.double  (class.weights),
-                as.integer (length (class.weights)),
-                as.double  (cachesize),
-                as.double  (tolerance),
-                as.double  (epsilon),
-                as.integer (shrinking),
-                as.integer (cross),
-                as.integer (sparse),
-                as.integer (probability),
-                as.double  (alpha),
-                as.integer (alphalen),
-
-                ## results
-                nclasses = integer  (1),
-                nr       = integer  (1), # nr of support vectors
-                index    = integer  (nr),
-                labels   = integer  (nclass),
-                nSV      = integer  (nclass),
-                rho      = double   (nclass * (nclass - 1) / 2),
-                coefs    = double   (nr * (nclass - 1)),
-                sigma    = double   (1),
-                probA    = double   (nclass * (nclass - 1) / 2),
-                probB    = double   (nclass * (nclass - 1) / 2),
-
-                cresults = double   (cross),
-                ctotal1  = double   (1),
-                ctotal2  = double   (1),
-                error    = err,
-
-                PACKAGE = "SwarmSVM")
+    muteFun({
+      cret <- .C ("svmtrain",
+                  ## data
+                  as.double  (if (sparse) x@ra else t(x)),
+                  as.integer (nr), as.integer(ncol(x)),
+                  as.double  (y),
+                  ## sparse index info
+                  as.integer (if (sparse) x@ia else 0),
+                  as.integer (if (sparse) x@ja else 0),
+  
+                  ## parameters
+                  as.integer (type),
+                  as.integer (kernel),
+                  as.integer (degree),
+                  as.double  (gamma),
+                  as.double  (coef0),
+                  as.double  (cost),
+                  as.double  (nu),
+                  as.integer (weightlabels),
+                  as.double  (class.weights),
+                  as.integer (length (class.weights)),
+                  as.double  (cachesize),
+                  as.double  (tolerance),
+                  as.double  (epsilon),
+                  as.integer (shrinking),
+                  as.integer (cross),
+                  as.integer (sparse),
+                  as.integer (probability),
+                  as.double  (alpha),
+                  as.integer (alphalen),
+  
+                  ## results
+                  nclasses = integer  (1),
+                  nr       = integer  (1), # nr of support vectors
+                  index    = integer  (nr),
+                  labels   = integer  (nclass),
+                  nSV      = integer  (nclass),
+                  rho      = double   (nclass * (nclass - 1) / 2),
+                  coefs    = double   (nr * (nclass - 1)),
+                  sigma    = double   (1),
+                  probA    = double   (nclass * (nclass - 1) / 2),
+                  probB    = double   (nclass * (nclass - 1) / 2),
+  
+                  cresults = double   (cross),
+                  ctotal1  = double   (1),
+                  ctotal2  = double   (1),
+                  error    = err,
+  
+                  PACKAGE = "SwarmSVM")
+    }, mute = mute)
 
     if (cret$error != empty_string)
         stop(paste(cret$error, "!", sep=""))

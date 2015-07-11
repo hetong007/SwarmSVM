@@ -26,7 +26,7 @@ gater = function(x, y, S, hidden, learningrate = 0.01, ...) {
   formula = paste0(paste(colnames(S),collapse='+'),
                    '~',
                    paste(colnames(x),collapse='+'))
-  net = neuralnet(formula, data, hidden = hidden, intercept = TRUE,
+  net = neuralnet(formula, data, hidden = hidden,
                   algorithm = 'backprop', act.fct = 'tanh',
                   learningrate = learningrate, true.response = y,
                   linear.output = FALSE, ...)

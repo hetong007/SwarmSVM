@@ -1,4 +1,4 @@
-requier(SwarmSVM)
+require(SwarmSVM)
 
 ### Toy Example
 local.file.name = tempfile()
@@ -22,8 +22,8 @@ covtype.test = covtype[test.ind,]
 ### GaterSVM
 ###############
 
-gaterSVM.model = gaterSVM(x = toydata[,-3], y = toydata[,3], hidden = 10, 
-                          m = 5, max.iter = 5, learningrate = 0.1, threshold = 0.01)
+gaterSVM.model = gaterSVM(x = toydata[,-3], y = toydata[,3], hidden = 10, seed = 0,
+                          m = 5, max.iter = 1, learningrate = 0.001, threshold = 0.01)
 preds = predict(gaterSVM.model, toydata.t[,-3])
 table(preds,toydata.t[,3])
 

@@ -16,7 +16,6 @@
 #' @param pre.scale either a logical value indicating whether to scale the data or not, or an integer vector specifying the columns. 
 #'        We don't scale data in SVM seperately.
 #' @param seed the random seed. Set it to \code{NULL} to randomize the model.
-#' @param mute a logical value indicating whether to print training information from svm.
 #' @param verbose a logical value indicating whether to print information of training.
 #' @param valid.x the mxp validation data matrix.
 #' @param valid.y if provided, it will be used to calculate the validation score with \code{valid.metric}
@@ -51,7 +50,7 @@
 #' 
 dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels, 
                  early = 0, final.training = FALSE,
-                 pre.scale = FALSE, seed = NULL, mute = TRUE, verbose = TRUE,
+                 pre.scale = FALSE, seed = NULL, verbose = TRUE,
                  valid.x = NULL, valid.y = NULL, valid.metric = NULL,
                  cluster.method = 'kmeans', 
                  cluster.fun = NULL, cluster.predict = NULL, ...) {
@@ -218,8 +217,6 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels,
   
   # SVM train
   for (lvl in max.levels:1) {
-    # cluster.label = kern.predict(kkmeans.res, x)
-    # cluster.label = cluster.fun(x, kmeans.res$centers)$cluster
     assertLogical(support, len = n)
     assertMatrix(alpha, nrows = n, ncols = num.lvls-1)
     cluster.label = as.integer(cluster.ind[, lvl+1])
@@ -236,16 +233,10 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels,
       if (length(ind)>1) {
         # train the svm with given support vectors
         if (lvl == max.levels || sum(support[ind])==0) {
-          #BBmisc::suppressAll({
-            muteFun({svm.model = alphasvm(x = x[ind,], y = y[ind], kernel = svm.kernel, ...)},
-                    mute = mute)
-          #})
+          svm.model = alphasvm(x = x[ind,], y = y[ind], kernel = svm.kernel, ...)
         } else {
-          #BBmisc::suppressAll({
-            muteFun({svm.model = alphasvm(x = x[ind,], y = y[ind], kernel = svm.kernel, 
-                                          alpha = alpha[ind,], ...)},
-                    mute = mute)
-          #})
+          svm.model = alphasvm(x = x[ind,], y = y[ind], kernel = svm.kernel, 
+                               alpha = alpha[ind,], ...)
         }
         svm.models[[clst]] = svm.model
         sv.ind = ind[svm.model$index]
@@ -254,8 +245,6 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels,
           new.alpha[sv.ind,] = svm.model$coefs
         }
       }
-      #cat(clst,'\n')
-      #if (clst == 39) browser()
     }
     support = new.support
     alpha = new.alpha
@@ -266,21 +255,15 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels,
   if (early == 0){
     # Refine
     ind = which(support)
-    #BBmisc::suppressAll({
-    muteFun({svm.models = alphasvm(x = x[ind,], y = y[ind], kernel = svm.kernel, 
-                            alpha = alpha[ind,], ...)},
-            mute = mute)
-    #})
+    svm.models = alphasvm(x = x[ind,], y = y[ind], kernel = svm.kernel, 
+                          alpha = alpha[ind,], ...)
     if (final.training) {
       sv.ind = ind[svm.models$index]
       alpha = matrix(0,n,num.lvls-1)
       alpha[sv.ind,] = svm.models$coefs
       
       # Final
-      #BBmisc::suppressAll({
-      muteFun({svm.models = alphasvm(x = x, y = y, kernel = svm.kernel, alpha = alpha, ...)},
-              mute = mute)
-      #})
+      svm.models = alphasvm(x = x, y = y, kernel = svm.kernel, alpha = alpha, ...)
     }
   }
   svm.time = (proc.time()-time.point)[3]
