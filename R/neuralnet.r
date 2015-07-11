@@ -4,7 +4,8 @@ neuralnet <-
             learningrate.factor = list(minus = 0.5, plus = 1.2), learningrate = NULL, 
             lifesign = "none", lifesign.step = 1000, algorithm = "rprop+", 
             err.fct = "sse", act.fct = "logistic", linear.output = TRUE, 
-            exclude = NULL, constant.weights = NULL, likelihood = FALSE, true.response = NULL) 
+            exclude = NULL, constant.weights = NULL, likelihood = FALSE, 
+            true.response = NULL, verbose = FALSE) 
   {
     call <- match.call()
     options(scipen = 100, digits = 10)
@@ -51,7 +52,8 @@ neuralnet <-
                                     act.fct = act.fct, act.deriv.fct = act.deriv.fct, 
                                     rep = i, linear.output = linear.output, exclude = exclude, 
                                     constant.weights = constant.weights, likelihood = likelihood, 
-                                    learningrate.bp = learningrate.bp, true.response = true.response)
+                                    learningrate.bp = learningrate.bp, 
+                                    true.response = true.response, verbose = verbose)
       if (!is.null(result$output.vector)) {
         list.result <- c(list.result, list(result))
         matrix <- cbind(matrix, result$output.vector)
@@ -337,7 +339,7 @@ calculate.neuralnet <-
             learningrate.limit, learningrate.factor, lifesign, covariate, 
             response, lifesign.step, startweights, algorithm, act.fct, 
             act.deriv.fct, err.fct, err.deriv.fct, linear.output, likelihood, 
-            exclude, constant.weights, learningrate.bp, true.response) 
+            exclude, constant.weights, learningrate.bp, true.response, verbose) 
   {
     time.start.local <- Sys.time()
     result <- generate.startweights(model.list, hidden, startweights, 
@@ -352,7 +354,8 @@ calculate.neuralnet <-
                     lifesign = lifesign, lifesign.step = lifesign.step, act.fct = act.fct, 
                     act.deriv.fct = act.deriv.fct, err.fct = err.fct, err.deriv.fct = err.deriv.fct, 
                     algorithm = algorithm, linear.output = linear.output, 
-                    exclude = exclude, learningrate.bp = learningrate.bp, true.response = true.response)
+                    exclude = exclude, learningrate.bp = learningrate.bp, 
+                    true.response = true.response, verbose = verbose)
     startweights <- weights
     weights <- result$weights
     step <- result$step
@@ -397,8 +400,8 @@ calculate.neuralnet <-
         cat("\n")
       }
     }
-    if (reached.threshold > threshold) 
-      return(result = list(output.vector = NULL, weights = NULL))
+#     if (reached.threshold > threshold) 
+#       return(result = list(output.vector = NULL, weights = NULL))
     output.vector <- c(error = error, reached.threshold = reached.threshold, 
                        steps = step)
     if (!is.null(aic)) {
@@ -512,7 +515,7 @@ rprop <-
   function (weights, response, covariate, threshold, learningrate.limit, 
             learningrate.factor, stepmax, lifesign, lifesign.step, act.fct, 
             act.deriv.fct, err.fct, err.deriv.fct, algorithm, linear.output, 
-            exclude, learningrate.bp, true.response) 
+            exclude, learningrate.bp, true.response, verbose) 
   {
     step <- 1
     nchar.stepmax <- max(nchar(stepmax), 7)
@@ -592,7 +595,6 @@ rprop <-
       } else {
         fx = tanh(rowSums(result$net.result * response))
         err.deriv = (fx - true.response)*(1-fx*fx) * response
-        # cat('Loss:', mean((fx-true.response)^2),', threshold:',reached.threshold,'\n')
       }
       gradients <- calculate.gradients(weights = weights, length.weights = length.weights, 
                                        neurons = result$neurons, neuron.deriv = result$neuron.deriv, 
@@ -600,6 +602,11 @@ rprop <-
       reached.threshold <- max(abs(gradients))
       if (reached.threshold < min.reached.threshold) {
         min.reached.threshold <- reached.threshold
+      }
+      if (verbose) {
+        cat('\rLoss:', mean((fx-true.response)^2),
+            '\t\t, threshold:', reached.threshold,
+            '\t, min threshold:', min.reached.threshold)
       }
       step <- step + 1
     }

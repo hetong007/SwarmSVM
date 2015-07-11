@@ -12,6 +12,7 @@
 #' @param max.iter the number of iterations
 #' @param hidden the number of neurons on the hidden layer
 #' @param learningrate the learningrate for the back propagation
+#' @param threshold neural network stops training once all gradient is below the threshold
 #' @param seed the random seed. Set it to \code{NULL} to randomize the model.
 #' @param valid.x the mxp validation data matrix.
 #' @param valid.y if provided, it will be used to calculate the validation score with \code{valid.metric}
@@ -33,8 +34,9 @@
 #' 
 #' @export
 #' 
-gaterSVM = function(x, y, m, c = 1, max.iter, hidden = 5, learningrate = 0.01, seed = NULL,
-                    valid.x = NULL, valid.y = NULL, valid.metric = NULL, verbose = FALSE, ...) {
+gaterSVM = function(x, y, m, c = 1, max.iter, hidden = 5, learningrate = 0.01, threshold = 0.01,
+                    seed = NULL, valid.x = NULL, valid.y = NULL, valid.metric = NULL,
+                    verbose = FALSE, ...) {
   
   total.time.point = proc.time()
   
@@ -106,7 +108,8 @@ gaterSVM = function(x, y, m, c = 1, max.iter, hidden = 5, learningrate = 0.01, s
     # Train weight
     time.point = proc.time()
     gater.model = gater(x = x, y = y, S = S, hidden = hidden, 
-                        learningrate = learningrate, ...)
+                        learningrate = learningrate, threshold = threshold,
+                        verbose = verbose, ...)
     W = predict(gater.model, x)
     sendMsg('Finish gater training.', verbose = verbose)
     gater.time[iter] = (proc.time()-time.point)[3]

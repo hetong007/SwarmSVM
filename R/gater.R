@@ -8,11 +8,14 @@
 #' @param S the prediction matrix from experts
 #' @param hidden the number of neurons in the hidden layer 
 #' @param learningrate the learningrate for the back propagation
+#' @param threshold neural network stops training once all gradient is below the threshold
+#' @param verbose a logical value indicating whether to print information of training.
 #' @param ... other parameters passing to \code{neuralnet}
 #' 
 #' @export
 #' 
-gater = function(x, y, S, hidden, learningrate = 0.01, ...) {
+gater = function(x, y, S, hidden, learningrate = 0.01, threshold = 0.01,
+                 verbose = verbose, ...) {
   m = ncol(S)
   n = nrow(x)
   p = ncol(x)
@@ -26,10 +29,10 @@ gater = function(x, y, S, hidden, learningrate = 0.01, ...) {
   formula = paste0(paste(colnames(S),collapse='+'),
                    '~',
                    paste(colnames(x),collapse='+'))
-  net = neuralnet(formula, data, hidden = hidden,
+  net = neuralnet(formula, data, hidden = hidden, true.response = y,
                   algorithm = 'backprop', act.fct = 'tanh',
-                  learningrate = learningrate, true.response = y,
-                  linear.output = FALSE, ...)
+                  learningrate = learningrate, threshold = threshold,
+                  linear.output = FALSE, verbose = verbose, ...)
   # weights = net$weights[[1]]
   res = list(net = net)
   res = structure(res, class = "gater")
