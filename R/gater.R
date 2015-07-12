@@ -16,21 +16,28 @@
 #' 
 gater = function(x, y, S, hidden, learningrate = 0.01, threshold = 0.01,
                  verbose = verbose, ...) {
+  assertInt(nrow(x), lower = 1)
+  assertInt(ncol(x), lower = 1)
+  assertInt(nrow(y), lower = nrow(x), upper = nrow(x))
+  assertInt(ncol(y), lower = 1)
+  assertInt(nrow(S), lower = nrow(x), upper = nrow(x))
+  assertInt(ncol(x), lower = 1)
+  
   m = ncol(S)
   n = nrow(x)
   p = ncol(x)
-  out.num = 1
+  # out.num = 1
   
-  x = as.data.frame(x)
-  colnames(x) = paste0('X',1:ncol(x))
-  S = as.data.frame(S)
-  colnames(S) = paste0('S',1:ncol(S))
-  data = data.frame(S, x)
-  formula = paste0(paste(colnames(S),collapse='+'),
-                   '~',
-                   paste(colnames(x),collapse='+'))
-  net = neuralnet(formula, data, hidden = hidden, true.response = y,
-                  algorithm = 'backprop', act.fct = 'tanh',
+#   x = as.data.frame(x)
+#   colnames(x) = paste0('X',1:ncol(x))
+#   S = as.data.frame(S)
+#   colnames(S) = paste0('S',1:ncol(S))
+#   data = data.frame(S, x)
+#   formula = paste0(paste(colnames(S),collapse='+'),
+#                    '~',
+#                    paste(colnames(x),collapse='+'))
+  net = neuralnet(x = x, y = S, hidden = hidden, true.response = as.vector(y),
+                  algorithm = 'rprop+', act.fct = 'tanh',
                   learningrate = learningrate, threshold = threshold,
                   linear.output = FALSE, verbose = verbose, ...)
   # weights = net$weights[[1]]

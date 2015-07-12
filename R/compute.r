@@ -11,7 +11,12 @@ function (x, covariate, rep = 1)
         weights[is.na(weights)] <- 0
     weights <- relist(weights, nrow.weights, ncol.weights)
     length.weights <- length(weights)
-    covariate <- as.matrix(cbind(1, covariate))
+    # covariate <- as.matrix(cbind(1, covariate))
+    if (testClass(covariate,'dgCMatrix')) {
+      covariate <- cBind(1, covariate)
+    } else {
+      covariate <- cbind(1, covariate)
+    }
     act.fct <- nn$act.fct
     neurons <- list(covariate)
     if (length.weights > 1) 

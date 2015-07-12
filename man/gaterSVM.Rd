@@ -9,7 +9,7 @@ gaterSVM(x, y, m, c = 1, max.iter, hidden = 5, learningrate = 0.01,
   valid.metric = NULL, verbose = FALSE, ...)
 }
 \arguments{
-\item{x}{the nxp training data matrix. Could be a matrix or a sparse matrix object.}
+\item{x}{the nxp training data matrix. Could be a matrix or an object that can be transformed into a matrix object.}
 
 \item{y}{a response vector for prediction tasks with one value for each of the n rows of \code{x}.
 For classification, the values correspond to class labels and can be a 1xn matrix,

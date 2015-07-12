@@ -1,5 +1,6 @@
 neuralnet <-
-  function (formula, data, hidden = 1, threshold = 0.01, stepmax = 1e+05, 
+  function (x = NULL, y = NULL, formula = NULL, data = NULL, 
+            hidden = 1, threshold = 0.01, stepmax = 1e+05, 
             rep = 1, startweights = NULL, learningrate.limit = NULL, 
             learningrate.factor = list(minus = 0.5, plus = 1.2), learningrate = NULL, 
             lifesign = "none", lifesign.step = 1000, algorithm = "rprop+", 
@@ -9,7 +10,7 @@ neuralnet <-
   {
     call <- match.call()
     options(scipen = 100, digits = 10)
-    result <- varify.variables(data, formula, startweights, learningrate.limit, 
+    result <- varify.variables(x, y, data, formula, startweights, learningrate.limit, 
                                learningrate.factor, learningrate, lifesign, algorithm, 
                                threshold, lifesign.step, hidden, rep, stepmax, err.fct, 
                                act.fct)
@@ -29,7 +30,7 @@ neuralnet <-
     model.list <- result$model.list
     matrix <- NULL
     list.result <- NULL
-    result <- generate.initial.variables(data, model.list, hidden, 
+    result <- generate.initial.variables(x, y, data, model.list, hidden, 
                                          act.fct, err.fct, algorithm, linear.output, formula)
     covariate <- result$covariate
     response <- result$response
@@ -81,26 +82,39 @@ neuralnet <-
     return(nn)
   }
 varify.variables <-
-  function (data, formula, startweights, learningrate.limit, learningrate.factor, 
+  function (x, y, data, formula, startweights, learningrate.limit, learningrate.factor, 
             learningrate.bp, lifesign, algorithm, threshold, lifesign.step, 
             hidden, rep, stepmax, err.fct, act.fct) 
   {
-    if (is.null(data)) 
-      stop("'data' is missing", call. = FALSE)
-    if (is.null(formula)) 
-      stop("'formula' is missing", call. = FALSE)
+    if (is.null(x) || is.null(y)) {
+      if (is.null(data)) 
+        stop("'data' is missing", call. = FALSE)
+      if (is.null(formula)) 
+        stop("'formula' is missing", call. = FALSE)
+    } else {
+      assertInt(nrow(x), lower = 1)
+      assertInt(ncol(x), lower = 1)
+      assertInt(nrow(y), lower = nrow(x), upper = nrow(x))
+      assertInt(ncol(y), lower = 1)
+    }
     if (!is.null(startweights)) {
       startweights <- as.vector(unlist(startweights))
       if (any(is.na(startweights))) 
         startweights <- startweights[!is.na(startweights)]
     }
     data <- as.data.frame(data)
-    formula <- as.formula(formula)
-    model.vars <- attr(terms(formula), "term.labels")
-    formula.reverse <- formula
-    formula.reverse[[3]] <- formula[[2]]
-    model.resp <- attr(terms(formula.reverse), "term.labels")
-    model.list <- list(response = model.resp, variables = model.vars)
+    if (!is.null(formula) && !is.null(data)) {
+      formula <- as.formula(formula)
+      model.vars <- attr(terms(formula), "term.labels")
+      formula.reverse <- formula
+      formula.reverse[[3]] <- formula[[2]]
+      model.resp <- attr(terms(formula.reverse), "term.labels")
+      model.list <- list(response = model.resp, variables = model.vars)
+    } else {
+      colnames(x) = paste0('X', 1:ncol(x))
+      colnames(y) = paste0('Y', 1:ncol(y))
+      model.list = list(response = colnames(y), variables = colnames(x))
+    }
     if (!is.null(learningrate.limit)) {
       if (length(learningrate.limit) != 2) 
         stop("'learningrate.factor' must consist of two components", 
@@ -191,25 +205,35 @@ varify.variables <-
     if (!is.function(err.fct) && err.fct != "sse" && err.fct != 
           "ce") 
       stop("'err.fct' is not known", call. = FALSE)
-    return(list(data = data, formula = formula, startweights = startweights, 
+    return(list(x = x, y = y, data = data, formula = formula, startweights = startweights, 
                 learningrate.limit = learningrate.limit, learningrate.factor = learningrate.factor, 
                 learningrate.bp = learningrate.bp, lifesign = lifesign, 
                 algorithm = algorithm, threshold = threshold, lifesign.step = lifesign.step, 
                 hidden = hidden, rep = rep, stepmax = stepmax, model.list = model.list))
   }
 generate.initial.variables <-
-  function (data, model.list, hidden, act.fct, err.fct, algorithm, 
+  function (x, y, data, model.list, hidden, act.fct, err.fct, algorithm, 
             linear.output, formula) 
   {
-    formula.reverse <- formula
-    formula.reverse[[2]] <- as.formula(paste(model.list$response[[1]], 
-                                             "~", model.list$variables[[1]], sep = ""))[[2]]
-    formula.reverse[[3]] <- formula[[2]]
-    response <- as.matrix(model.frame(formula.reverse, data))
-    formula.reverse[[3]] <- formula[[3]]
-    covariate <- as.matrix(model.frame(formula.reverse, data))
-    covariate[, 1] <- 1
-    colnames(covariate)[1] <- "intercept"
+    if (!is.null(formula) && !is.null(data)) {
+      formula.reverse <- formula
+      formula.reverse[[2]] <- as.formula(paste(model.list$response[[1]], 
+                                               "~", model.list$variables[[1]], sep = ""))[[2]]
+      formula.reverse[[3]] <- formula[[2]]
+      response <- as.matrix(model.frame(formula.reverse, data))
+      formula.reverse[[3]] <- formula[[3]]
+      covariate <- as.matrix(model.frame(formula.reverse, data))
+      covariate[, 1] <- 1
+      colnames(covariate)[1] <- "intercept"
+    } else {
+      response = y
+      if (testClass(x, "dgCMatrix")) {
+        covariate = Matrix::cBind(1,x)
+      } else {
+        covariate = cbind(1,x)
+      }
+      colnames(covariate) <- c("intercept", paste0('X', 1:(ncol(covariate)-1)))
+    }
     if (is.function(act.fct)) {
       act.deriv.fct <- differentiate(act.fct)
       attr(act.fct, "type") <- "function"
@@ -604,7 +628,8 @@ rprop <-
         min.reached.threshold <- reached.threshold
       }
       if (verbose) {
-        cat('\rLoss:', mean((fx-true.response)^2),
+        cat('\rStep:', step,
+            '\tLoss:', mean((fx-true.response)^2),
             '\t\t, threshold:', reached.threshold,
             '\t, min threshold:', min.reached.threshold)
       }
@@ -621,7 +646,7 @@ compute.net <-
   function (weights, length.weights, covariate, act.fct, act.deriv.fct, 
             output.act.fct, output.act.deriv.fct, special) 
   {
-    neuron.deriv <- NULL
+    neuron.deriv <- list()
     neurons <- list(covariate)
     if (length.weights > 1) 
       for (i in 1:(length.weights - 1)) {

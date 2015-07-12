@@ -1,7 +1,7 @@
 #' Mixture SVMs with gater function
 #' 
 #' 
-#' @param x the nxp training data matrix. Could be a matrix or a sparse matrix object.
+#' @param x the nxp training data matrix. Could be a matrix or an object that can be transformed into a matrix object.
 #' @param y a response vector for prediction tasks with one value for each of the n rows of \code{x}. 
 #'     For classification, the values correspond to class labels and can be a 1xn matrix, 
 #'     a simple vector or a factor. For regression, the values correspond to the values to predict, 
@@ -45,6 +45,8 @@ gaterSVM = function(x, y, m, c = 1, max.iter, hidden = 5, learningrate = 0.01, t
   
   assertInt(nrow(x), lower = 1)
   assertInt(ncol(x), lower = 1)
+  x = as.matrix(x)
+  assertClass(x, classes = "matrix")
   n = nrow(x)
 
   assertVector(y, len = n)
@@ -57,7 +59,8 @@ gaterSVM = function(x, y, m, c = 1, max.iter, hidden = 5, learningrate = 0.01, t
   if (length(levels(y))!=2)
     stop("Only binary classification is supported")
   y = 2*as.integer(y)-3
-  all.data = data.frame(y = as.factor(y), x = x)
+  y = matrix(y, length(y), 1)
+  # all.data = data.frame(y = as.factor(y), x = x)
   
   # Positive indices
   shuf = sample(which(y == 1))
@@ -97,9 +100,11 @@ gaterSVM = function(x, y, m, c = 1, max.iter, hidden = 5, learningrate = 0.01, t
     expert = vector(m, mode = 'list')
     time.point = proc.time()
     for (i in 1:m) {
-      sub.data = data.frame(y = as.factor(y[sub.ind[[i]]]), x = x[sub.ind[[i]],])
-      expert[[i]] = alphasvm(y~., data = sub.data, probability = TRUE)
-      S[,i] = predict(expert[[i]], all.data, probability = TRUE)
+#       sub.data = data.frame(y = as.factor(y[sub.ind[[i]]]), x = x[sub.ind[[i]],])
+#       expert[[i]] = alphasvm(y~., data = sub.data, probability = TRUE)
+#       S[,i] = predict(expert[[i]], all.data, probability = TRUE)
+      expert[[i]] = alphasvm(x = x[sub.ind[[i]],], y = y[sub.ind[[i]]])
+      S[,i] = predict(expert[[i]], x)
       sendMsg('Finished training for expert ', i, verbose = verbose)
     }
     svm.time[iter] = (proc.time()-time.point)[3]
@@ -124,11 +129,15 @@ gaterSVM = function(x, y, m, c = 1, max.iter, hidden = 5, learningrate = 0.01, t
       ind = which.max(sub.avail*W[i,])
       sub.assign[i] = ind
       sub.num[ind] = sub.num[ind]+1
-      if (sub.num[ind] > (n/m+c))
+      if (sub.num[ind]+1 > (n/m+c))
         sub.avail[ind] = -Inf
     }
     for (i in 1:m) {
       sub.ind[[i]] = which(sub.assign==i)
+    }
+    len = sapply(sub.ind, length)
+    if (any(len == 0)) {
+      stop("some sub groups have zero length, please adjust the number of experts, or parameter c.")
     }
     
     iter = iter+1
@@ -143,9 +152,10 @@ gaterSVM = function(x, y, m, c = 1, max.iter, hidden = 5, learningrate = 0.01, t
   if (!testNull(valid.x)) {
     time.point = proc.time()
     # assertMatrix(valid.x, min.rows = 1, ncols = ncol(x))
-    assertClass(valid.x, classes = class(x))
     assertInt(nrow(valid.x), lower = 1)
     assertInt(ncol(valid.x), lower = 1)
+    valid.x = as.matrix(valid.x)
+    assertClass(valid.x, classes = "matrix")
     if (testNull(valid.y)) {
       warning("Target value for validation is not available.")
       result$valid.pred = predict(result, valid.x)
@@ -196,13 +206,13 @@ gaterSVM = function(x, y, m, c = 1, max.iter, hidden = 5, learningrate = 0.01, t
 predict.gaterSVM = function(object, newdata, ...) {
   assertClass(object, "gaterSVM")
   assertInt(nrow(newdata), lower = 1)
+  newdata = as.matrix(newdata)
   
   n = nrow(newdata)
   m = length(object$expert)
   assertInt(m)
   
   S = matrix(0, n, m)
-  newdata = data.frame(x = newdata)
   for (i in 1:m) {
     S[,i] = predict(object$expert[[i]], newdata)
   }
