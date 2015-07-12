@@ -42,6 +42,16 @@ Customized metric is acceptable.}
 
 \item{...}{other parameters passing to \code{neuralnet}}
 }
+\value{
+\itemize{
+   \item \code{expert} a list of svm experts
+   \item \code{gater} the trained neural network model
+   \item \code{valid.pred} the validation prediction
+   \item \code{valid.score} the validation score
+   \item \code{valid.metric} the validation metric
+   \item \code{time} a list object recording the time consumption for each steps.
+}
+}
 \description{
 Mixture SVMs with gater function
 }
@@ -49,10 +59,10 @@ Mixture SVMs with gater function
 data(svmguide1)
 svmguide1.t = as.matrix(svmguide1[[2]])
 svmguide1 = as.matrix(svmguide1[[1]])
-res = gaterSVM(x = svmguide1[,-1], y = svmguide1[,1], m = 5, max.iter = 2)
-preds = predict(res,svmguide1.t[,-1])
-tb = table(preds,svmguide1.t[,1])
-tb
-sum(diag(tb))/nrow(svmguide1.t)
+gaterSVM.model = gaterSVM(x = svmguide1[,-1], y = svmguide1[,1], hidden = 10, seed = 0,
+                          m = 10, max.iter = 3, learningrate = 0.01, threshold = 1, stepmax = 1000,
+                          valid.x = svmguide1.t[,-1], valid.y = svmguide1.t[,1], verbose = FALSE)
+table(gaterSVM.model$valid.pred,svmguide1.t[,1])
+gaterSVM.model$valid.score
 }
 

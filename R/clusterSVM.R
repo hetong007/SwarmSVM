@@ -120,6 +120,9 @@ csvmTransform = function(x, lambda, cluster.label, sparse = TRUE) {
 #'    \item \code{cluster.fun} the function used for clustering
 #'    \item \code{cluster.object} the object either
 #'    \item \code{cluster.predict} the function used for prediction on new data based on the object
+#'    \item \code{valid.pred} the validation prediction
+#'    \item \code{valid.score} the validation score
+#'    \item \code{valid.metric} the validation metric
 #'    \item \code{time} a list object recording the time consumption for each steps.
 #' }
 #' 

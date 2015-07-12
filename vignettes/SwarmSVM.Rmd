@@ -287,14 +287,44 @@ dcsvm.model$time$total.time
 ```
 
 
+The Mixture of SVM Experts with a Gater Function
+=======================================================
 
+#### Algorithm
 
+The algorithm can be described in the following iterative framework:
 
+**Training**
 
+1. Split the data into $M$ random subsets of nearly $N/M$.
+2. Train $M$ svm experts seperately on each subset.
+3. Each svm expert predict on the entire training data set.
+4. Train a neural network model minimizing the Eq. (7) in the original paper.
+5. Reconstruct subsets: Ffor each data point
+    - sort the experts in descending order according to the weight from the neural network
+    - assign the example to the first expert in the list which has less than (N/M+c) data points.
+6. Goto step 2 until a termination criterion is fulfilled.
 
+**Test**
 
+1. Make prediction on the test data by the $M$ experts.
+2. Make prediction on the experts' output by the trained neural network model.
 
+#### Basic usage
 
+```{r}
+gaterSVM.model = gaterSVM(x = svmguide1[,-1], y = svmguide1[,1], hidden = 10, seed = 0,
+                          m = 10, max.iter = 3, learningrate = 0.01, threshold = 1, stepmax = 1000,
+                          valid.x = svmguide1.t[,-1], valid.y = svmguide1.t[,1], verbose = TRUE)
+```
+
+The parameters can be categorized into the following groups: 
+
+1. `x` and `y` are the feature matric and target vector of the training data. 
+2. `valid.x` and `valid.y` are the feature matric and target vector of the validation data.
+3. `seed` is controlling the random seed to make the result reproducible. `verbose` is controlling the content of the output.
+4. `m`, `max.iter` controls the iteration of "experts-gater" process.
+5. `hidden`, `learningrate`, `threshold`, `stepmax` are parameters for the neural network model.
 
 
 

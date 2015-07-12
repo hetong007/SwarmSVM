@@ -34,6 +34,20 @@
 #'     Customized function is acceptable, as long as the resulting list contains two fields named as \code{cluster} and \code{centers}.
 #' @param ... other parameters passed to \code{e1071::svm}
 #' 
+#' @return 
+#' \itemize{
+#'    \item \code{svm} a list of svm models if using early prediction, or an svm object otherwise.
+#'    \item \code{early} whether using the early prediction strategy or not
+#'    \item \code{cluster.tree} a matrix containing clustering labels in each level
+#'    \item \code{cluster.fun} the clustering training function
+#'    \item \code{cluster.predict} the clustering predicting function
+#'    \item \code{scale} a list containing scaling information
+#'    \item \code{valid.pred} the validation prediction
+#'    \item \code{valid.score} the validation score
+#'    \item \code{valid.metric} the validation metric
+#'    \item \code{time} a list object recording the time consumption for each steps.
+#' }
+#' 
 #' @examples
 #' data(svmguide1)
 #' svmguide1.t = as.matrix(svmguide1[[2]])

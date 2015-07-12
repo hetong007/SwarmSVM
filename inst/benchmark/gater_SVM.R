@@ -28,8 +28,8 @@ gaterSVM.model = gaterSVM(x = toydata[,-3], y = toydata[,3], hidden = 10, seed =
 table(gaterSVM.model$valid.pred,toydata.t[,3])
 
 
-gaterSVM.model = gaterSVM(x = covtype.train[1:50000,-1], y = covtype.train[1:50000,1], 
-                          hidden = 150, seed = 0, m = 50, max.iter = 1, 
+gaterSVM.model = gaterSVM(x = covtype.train[,-1], y = covtype.train[,1], 
+                          hidden = 150, seed = 0, m = 50, max.iter = 3, 
                           learningrate = 0.03, threshold = 0.05, verbose = TRUE,
                           valid.x = covtype.valid[,-1], 
                           valid.y = covtype.valid[,1],stepmax = 40)
