@@ -22,7 +22,7 @@ and can be a 1xn matrix or a simple vector.}
 
 \item{m}{the number of sample for kernel kmeans}
 
-\item{kernel}{the kernel type: 0 for linear, 1 for polynomial, 2 for gaussian}
+\item{kernel}{the kernel type: 1 for linear, 2 for polynomial, 3 for gaussian}
 
 \item{max.levels}{the maximum number of level}
 

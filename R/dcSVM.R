@@ -9,7 +9,7 @@
 #'     and can be a 1xn matrix or a simple vector.
 #' @param k the number of sub-problems divided
 #' @param m the number of sample for kernel kmeans
-#' @param kernel the kernel type: 0 for linear, 1 for polynomial, 2 for gaussian
+#' @param kernel the kernel type: 1 for linear, 2 for polynomial, 3 for gaussian
 #' @param max.levels the maximum number of level
 #' @param early whether use early prediction
 #' @param final.training whether train the svm over the entire data again. usually not needed.

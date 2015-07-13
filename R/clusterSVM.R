@@ -87,7 +87,6 @@ csvmTransform = function(x, lambda, cluster.label, sparse = TRUE) {
 #'     See details in \code{LiblineaR}. 
 #' @param epsilon set tolerance of termination criterion for optimization. 
 #'     If NULL, the LIBLINEAR defaults are used, which are:
-#' @param svr.eps set tolerance margin (epsilon) in regression loss function of SVR. Not used for classification methods.
 #' @param bias if bias is \code{TRUE} (default), instances of data becomes [data; 1].
 #' @param wi a named vector of weights for the different classes, 
 #'     used for asymmetric class sizes. Not all factor levels have to be supplied (default weight: 1). 
@@ -143,7 +142,7 @@ csvmTransform = function(x, lambda, cluster.label, sparse = TRUE) {
 #' 
 clusterSVM = function(x, y, centers = NULL, cluster.object = NULL, lambda = 1, sparse = TRUE, 
                       valid.x = NULL, valid.y = NULL, valid.metric = NULL,
-                      type = 1, cost = 1, epsilon = NULL, svr.eps = NULL, 
+                      type = 1, cost = 1, epsilon = NULL, 
                       bias = TRUE, wi = NULL, verbose = 1, seed = NULL,
                       cluster.method = "kmeans",
                       cluster.fun = NULL, cluster.predict = NULL, ...) {

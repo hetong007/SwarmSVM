@@ -20,7 +20,7 @@ ijcnn1 = ijcnn1[[1]]
 local.file.name = tempfile()
 download.file("http://www.sfu.ca/~hetongh/data/covtype.mult.RData",local.file.name)
 load(local.file.name)
-train.ind = 1:100000
+train.ind = 1:400000
 valid.ind = 420001:430000
 test.ind = 450001:500000
 covtype.train = covtype[train.ind,]
@@ -65,11 +65,8 @@ table(gaterSVM.model$valid.pred, covtype.valid[,1])
 # 1   448 1976
 
 gaterSVM.model = gaterSVM(x = covtype.train[,-1], y = covtype.train[,1], 
-                          hidden = 50, seed = 0, m = 20, max.iter = 1, 
+                          hidden = 150, seed = 0, m = 50, max.iter = 1, 
                           learningrate = 0.03, threshold = 0.05, verbose = TRUE,
                           valid.x = covtype.valid[,-1], 
                           valid.y = covtype.valid[,1],stepmax = 200)
 table(gaterSVM.model$valid.pred, covtype.valid[,1])
-# 0    1
-# -1 5253 2518
-# 1   566 1663
