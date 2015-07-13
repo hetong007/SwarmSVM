@@ -92,11 +92,13 @@ scaleBySD = function(x, sds) {
 }
 
 sendMsg = function(..., verbose) {
+  assertFlag(verbose)
   if (verbose)
     message(...)
 }
 
 muteFun = function(expr, mute = FALSE) {
+  assertFlag(mute)
   if (mute) {
     BBmisc::suppressAll(expr)
   } else {
@@ -115,6 +117,7 @@ cluster.fun.kkmeans = function(x, centers, ...) {
   assertMatrix(x, min.rows = 1, min.cols = 1)
   # due to a wierd namespace problem i add this line
   # tmp = kernlab::kkmeans(as.matrix(iris[,-5]), centers, ...)
+  assertInt(centers, lower = 1, upper = nrow(x))
   args = list(x = x, centers = centers, ...)
   kernl.result = tryCatch(expr = {kernl.result = do.call(kernlab::kkmeans, args)}, 
                           error = function(err) {

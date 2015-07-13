@@ -9,13 +9,14 @@
 #' @param hidden the number of neurons in the hidden layer 
 #' @param learningrate the learningrate for the back propagation
 #' @param threshold neural network stops training once all gradient is below the threshold
+#' @param stepmax the maximum iteration of the neural network training process
 #' @param verbose a logical value indicating whether to print information of training.
 #' @param ... other parameters passing to \code{neuralnet}
 #' 
 #' @export
 #' 
-gater = function(x, y, S, hidden, learningrate = 0.01, threshold = 0.01,
-                 verbose = verbose, ...) {
+gater = function(x, y, S, hidden, learningrate = 0.01, threshold = 0.01, 
+                 stepmax = 100, verbose = verbose, ...) {
   assertInt(nrow(x), lower = 1)
   assertInt(ncol(x), lower = 1)
   assertInt(nrow(y), lower = nrow(x), upper = nrow(x))
@@ -37,7 +38,7 @@ gater = function(x, y, S, hidden, learningrate = 0.01, threshold = 0.01,
 #                    '~',
 #                    paste(colnames(x),collapse='+'))
   net = neuralnet(x = x, y = S, hidden = hidden, true.response = as.vector(y),
-                  algorithm = 'rprop+', act.fct = 'tanh',
+                  algorithm = 'rprop+', act.fct = 'tanh', stepmax = stepmax,
                   learningrate = learningrate, threshold = threshold,
                   linear.output = FALSE, verbose = verbose, ...)
   # weights = net$weights[[1]]

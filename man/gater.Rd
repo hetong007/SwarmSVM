@@ -5,7 +5,7 @@
 \title{Gater function for mixture SVMs}
 \usage{
 gater(x, y, S, hidden, learningrate = 0.01, threshold = 0.01,
-  verbose = verbose, ...)
+  stepmax = 100, verbose = verbose, ...)
 }
 \arguments{
 \item{x}{the nxp training data matrix. Could be a matrix or a sparse matrix object.}
@@ -22,6 +22,8 @@ and can be a 1xn matrix or a simple vector.}
 \item{learningrate}{the learningrate for the back propagation}
 
 \item{threshold}{neural network stops training once all gradient is below the threshold}
+
+\item{stepmax}{the maximum iteration of the neural network training process}
 
 \item{verbose}{a logical value indicating whether to print information of training.}
 

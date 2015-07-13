@@ -5,8 +5,8 @@
 \title{Mixture SVMs with gater function}
 \usage{
 gaterSVM(x, y, m, c = 1, max.iter, hidden = 5, learningrate = 0.01,
-  threshold = 0.01, seed = NULL, valid.x = NULL, valid.y = NULL,
-  valid.metric = NULL, verbose = FALSE, ...)
+  threshold = 0.01, stepmax = 100, seed = NULL, valid.x = NULL,
+  valid.y = NULL, valid.metric = NULL, verbose = FALSE, ...)
 }
 \arguments{
 \item{x}{the nxp training data matrix. Could be a matrix or an object that can be transformed into a matrix object.}
@@ -28,6 +28,8 @@ the number of samples in each subset.}
 \item{learningrate}{the learningrate for the back propagation}
 
 \item{threshold}{neural network stops training once all gradient is below the threshold}
+
+\item{stepmax}{the maximum iteration of the neural network training process}
 
 \item{seed}{the random seed. Set it to \code{NULL} to randomize the model.}
 

@@ -13,6 +13,7 @@
 #' @param hidden the number of neurons on the hidden layer
 #' @param learningrate the learningrate for the back propagation
 #' @param threshold neural network stops training once all gradient is below the threshold
+#' @param stepmax the maximum iteration of the neural network training process
 #' @param seed the random seed. Set it to \code{NULL} to randomize the model.
 #' @param valid.x the mxp validation data matrix.
 #' @param valid.y if provided, it will be used to calculate the validation score with \code{valid.metric}
@@ -37,14 +38,15 @@
 #' svmguide1.t = as.matrix(svmguide1[[2]])
 #' svmguide1 = as.matrix(svmguide1[[1]])
 #' gaterSVM.model = gaterSVM(x = svmguide1[,-1], y = svmguide1[,1], hidden = 10, seed = 0,
-#'                           m = 10, max.iter = 3, learningrate = 0.01, threshold = 1, stepmax = 1000,
+#'                           m = 10, max.iter = 1, learningrate = 0.01, threshold = 1, stepmax = 1000,
 #'                           valid.x = svmguide1.t[,-1], valid.y = svmguide1.t[,1], verbose = FALSE)
 #' table(gaterSVM.model$valid.pred,svmguide1.t[,1])
 #' gaterSVM.model$valid.score
 #' 
 #' @export
 #' 
-gaterSVM = function(x, y, m, c = 1, max.iter, hidden = 5, learningrate = 0.01, threshold = 0.01,
+gaterSVM = function(x, y, m, c = 1, max.iter, 
+                    hidden = 5, learningrate = 0.01, threshold = 0.01, stepmax = 100,
                     seed = NULL, valid.x = NULL, valid.y = NULL, valid.metric = NULL,
                     verbose = FALSE, ...) {
   
@@ -108,13 +110,22 @@ gaterSVM = function(x, y, m, c = 1, max.iter, hidden = 5, learningrate = 0.01, t
   
   while (!stopCondition) {
     expert = vector(m, mode = 'list')
+    constant.pred = rep(0,m)
     time.point = proc.time()
     for (i in 1:m) {
 #       sub.data = data.frame(y = as.factor(y[sub.ind[[i]]]), x = x[sub.ind[[i]],])
 #       expert[[i]] = alphasvm(y~., data = sub.data, probability = TRUE)
 #       S[,i] = predict(expert[[i]], all.data, probability = TRUE)
-      expert[[i]] = alphasvm(x = x[sub.ind[[i]],], y = y[sub.ind[[i]]])
-      S[,i] = predict(expert[[i]], x)
+      #expert[[i]] = alphasvm(x = x[sub.ind[[i]],], y = y[sub.ind[[i]]])
+      expert[[i]] = e1071::svm(x = x[sub.ind[[i]],], y = y[sub.ind[[i]]], 
+                               scale = FALSE, fitted = FALSE)
+      if (expert[[i]]$tot.nSV<1) {
+        constant.pred[i] = y[sub.ind[[i]]][1]
+        S[,i] = constant.pred[i]
+      } else {
+        S[,i] = predict(expert[[i]], x)
+      }
+      #S[,i] = predict(expert[[i]], x)
       sendMsg('Finished training for expert ', i, verbose = verbose)
     }
     svm.time[iter] = (proc.time()-time.point)[3]
@@ -124,7 +135,7 @@ gaterSVM = function(x, y, m, c = 1, max.iter, hidden = 5, learningrate = 0.01, t
     time.point = proc.time()
     gater.model = gater(x = x, y = y, S = S, hidden = hidden, 
                         learningrate = learningrate, threshold = threshold,
-                        verbose = verbose, ...)
+                        verbose = verbose, stepmax = stepmax, ...)
     W = predict(gater.model, x)
     sendMsg('Finish gater training.', verbose = verbose)
     gater.time[iter] = (proc.time()-time.point)[3]
@@ -154,6 +165,7 @@ gaterSVM = function(x, y, m, c = 1, max.iter, hidden = 5, learningrate = 0.01, t
     stopCondition = iter>max.iter
   }
   result = list(expert = expert,
+                constant.pred = constant.pred,
                 gater = gater.model)
   result = structure(result, class = "gaterSVM")
   
@@ -195,7 +207,10 @@ gaterSVM = function(x, y, m, c = 1, max.iter, hidden = 5, learningrate = 0.01, t
                    gater.time = gater.time,
                    validation.time = validation.time,
                    total.time = total.time)
-  result$time = time
+  result$time = time.list
+
+  sendMsg("Finished the whole process in ", total.time, ' secs.', 
+          verbose = verbose)
   return(result)
 }
 
@@ -224,7 +239,12 @@ predict.gaterSVM = function(object, newdata, ...) {
   
   S = matrix(0, n, m)
   for (i in 1:m) {
-    S[,i] = predict(object$expert[[i]], newdata)
+    now.expert = object$expert[[i]]
+    if (now.expert$tot.nSV<1) {
+      S[,i] = object$constant.pred[i]
+    } else {
+      S[,i] = predict(now.expert, newdata)
+    }
   }
   W = predict(object$gater, newdata)
   pred = sign(object$gater$net$act.fct(rowSums(W*S)))
