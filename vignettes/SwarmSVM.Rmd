@@ -68,13 +68,12 @@ In our pacakge, there are two main algorithms requiring clustering algorithm for
 
 #### Default Algorithms
 
-We now provide three algorithms existing in R:
+We now provide two algorithms existing in R:
 
 - The default kmeans algorithm `stats::kmeans`, named as "kmeans";
-- A possibly kmeans algorithm from `RcppMLPACK::mlKmeans`, named as "mlKmeans";
 - The kernel kmeans algorithm `kernlab::kkmeans`, named as "kernkmeans".
 
-In `clusterSVM` and `dcSVM`, we offer an argument `cluster.method`, you could choose one of the three algorithms and pass its name to the argument.
+In `clusterSVM` and `dcSVM`, we offer an argument `cluster.method`, you could choose one of the two algorithms and pass its name to the argument.
 
 #### Customization
 
@@ -97,7 +96,7 @@ The algorithm is straight forward:
 
 **Training**
 
-1. Cluster the data. The default setting is `RcppMLPACK::mlKmeans`.
+1. Cluster the data. The default setting is `stats::kmeans`.
 2. Transform the data according to the Eq. (4) - Eq. (7) in the original paper.
 3. Solve the new problem with a linear svm from `LiblineaR::LiblineaR`.
 
@@ -149,32 +148,29 @@ In `clusterSVM`, the clustering is a very important step. Therefore we don't res
 Note that we require the output of the clustering algorithm contains two fields: `centers` and `cluster`. One example could be
 
 ```{r}
-cluster.fun = function(x, centers, ...) {
-  x = as.matrix(x)
-  kernl.result = kernlab::kkmeans(x, centers, ...)
-  result = list()
-  result$cluster = kernl.result@.Data
-  result$centers = kernl.result@centers
+cluster.fun = stats::kmeans
+
+cluster.predict = function(x, cluster.object) {
+  centers = cluster.object$centers
+  eucliDist = function(x, centers) apply(centers, 1, function(C) colSums( (t(x)-C)^2 ))
+  euclidean.dist = eucliDist(x, centers)
+  result = max.col(-euclidean.dist)
   return(result)
 }
 ```
 
-Here we use the kernel kmeans from `kernlab`. Once we have defined the algorithm, it is straight forward to pass it to `clusterSVM`:
+Here we use the default kmeans, and implement the prediction function. Once we have defined the algorithm, it is straight forward to pass it to `clusterSVM`:
 
 ```{r}
-csvm.obj = clusterSVM(x = svmguide1[,-1], y = svmguide1[,1], seed = 1,
-                      cluster.fun = cluster.fun, centers = 8, 
-                      valid.x = svmguide1.t[,-1],valid.y = svmguide1.t[,1])
+csvm.obj = clusterSVM(x = svmguide1[,-1], y = svmguide1[,1], centers = 8, seed = 1,
+                      cluster.fun = cluster.fun, cluster.predict = cluster.predict,
+                      valid.x = svmguide1.t[,-1], valid.y = svmguide1.t[,1])
 csvm.obj$valid.score
 ```
-
-Notice the accuracy is improved by 1% but the training time is increased drastically. This implies the users should think about the trade-off between accuracy and efficiency.
-
 
 
 A Divide-and-Conquer Support Vector Machine
 =============================================
-
 
 #### Algorithm
 
@@ -316,6 +312,7 @@ The algorithm can be described in the following iterative framework:
 gaterSVM.model = gaterSVM(x = svmguide1[,-1], y = svmguide1[,1], hidden = 10, seed = 0,
                           m = 10, max.iter = 3, learningrate = 0.01, threshold = 1, stepmax = 1000,
                           valid.x = svmguide1.t[,-1], valid.y = svmguide1.t[,1], verbose = TRUE)
+gaterSVM.model$valid.score
 ```
 
 The parameters can be categorized into the following groups: 

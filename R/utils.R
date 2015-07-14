@@ -3,7 +3,7 @@
 #' @param x the data matrix
 #' @param centers the matrix of centers
 #' 
-eucliDist= function(x, centers) {
+eucliDist = function(x, centers) {
   assertInt(nrow(x), lower = 1)
   assertInt(ncol(x), lower = 1)
   assertMatrix(centers, ncols = ncol(x))
@@ -30,7 +30,6 @@ kmeans.predict = function(x, cluster.object) {
   assertMatrix(centers)
   
   euclidean.dist = eucliDist(x, centers)
-  result = list()
   result = max.col(-euclidean.dist)
   assertInteger(result, lower = 1, upper = nrow(centers), len = nrow(x))
   return(result)

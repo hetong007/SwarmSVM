@@ -1,6 +1,6 @@
 Package: SwarmSVM
 Title: Ensemble Learning Algorithms Based on SVM
-Version: 0.0.0.9000
+Version: 0.1
 Date: 2015-05-27
 Author: Tong He <hetong007@gmail.com>, Aydin Demircioglu <aydin.demircioglu@ini.ruhr-uni-bochum.de>
 Maintainer: Tong He <hetong007@gmail.com>
@@ -14,7 +14,8 @@ Imports:
     SparseM,
     kernlab,
     methods,
-    checkmate,
+    checkmate (>= 1.6.0),
     BBmisc
 License: GPL-2
-Suggests: testthat
+Suggests: testthat, knitr, rmarkdown
+VignetteBuilder: knitr
