@@ -150,6 +150,8 @@ clusterSVM = function(x, y, centers = NULL, cluster.object = NULL, lambda = 1, s
   # Parameter check
   assertInt(nrow(x), lower = 1)
   assertInt(ncol(x), lower = 1)
+  if (testClass(x, "data.frame"))
+    x = data.matrix(x)
   assertVector(y)
   assertNumber(lambda, lower = 0)
   assertNumber(cost, lower = 0)
@@ -304,6 +306,8 @@ predict.clusterSVM = function(object, newdata = NULL, cluster.predict = NULL, ..
   assertClass(object, 'clusterSVM')
   assertInt(nrow(newdata), lower = 1)
   assertInt(ncol(newdata), lower = 1)
+  if (testClass(newdata, "data.frame"))
+    newdata = data.matrix(newdata)
   assertMatrix(object$centers, min.rows = 1, ncols = ncol(newdata))
   if (testNull(cluster.predict)) {
     cluster.predict = object$cluster.predict

@@ -57,6 +57,8 @@ gaterSVM = function(x, y, m, c = 1, max.iter,
   
   assertInt(nrow(x), lower = 1)
   assertInt(ncol(x), lower = 1)
+  if (testClass(x, "data.frame"))
+    x = data.matrix(x)
   x = as.matrix(x)
   assertClass(x, classes = "matrix")
   n = nrow(x)
@@ -231,6 +233,8 @@ gaterSVM = function(x, y, m, c = 1, max.iter,
 predict.gaterSVM = function(object, newdata, ...) {
   assertClass(object, "gaterSVM")
   assertInt(nrow(newdata), lower = 1)
+  if (testClass(newdata, "data.frame"))
+    newdata = data.matrix(newdata)
   newdata = as.matrix(newdata)
   
   n = nrow(newdata)

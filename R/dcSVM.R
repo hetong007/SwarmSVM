@@ -72,15 +72,18 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels,
   # parameter check
   if (!testNull(seed))
     set.seed(seed)
+  
+  assertInt(nrow(x), lower = 1)
+  assertInt(ncol(x), lower = 1)
+  if (testClass(x, "data.frame"))
+    x = data.matrix(x)
+  assertVector(y, len = nrow(x))
+  
   n = nrow(x)
   if (m>n) {
     warning("m larger than n, the number of data points. It is adjusted to n.")
     m = n
   }
-  #assertMatrix(x, min.rows = 1, min.cols = 1)
-  assertInt(nrow(x), lower = 1)
-  assertInt(ncol(x), lower = 1)
-  assertVector(y, len = nrow(x))
   
   if (testNull(cluster.fun) && testNull(cluster.predict)) {
     assertCharacter(cluster.method)
@@ -362,6 +365,8 @@ predict.dcSVM = function(object, newdata, ...) {
   # assertMatrix(newdata, min.rows = 1)
   assertInt(nrow(newdata), lower = 1)
   assertInt(ncol(newdata), lower = 1)
+  if (testClass(newdata, "data.frame"))
+    newdata = data.matrix(newdata)
   scale.info = object$scale
   if (!testNull(scale.info$scale)) {
     assertInteger(scale.info$scale)
