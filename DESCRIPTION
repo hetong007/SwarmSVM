@@ -1,10 +1,11 @@
 Package: SwarmSVM
-Title: Ensemble Learning Algorithms Based on SVM
+Title: Ensemble Learning Algorithms Based on Support Vector Machines
 Version: 0.1
 Date: 2015-05-27
 Author: Tong He <hetong007@gmail.com>, Aydin Demircioglu <aydin.demircioglu@ini.ruhr-uni-bochum.de>
 Maintainer: Tong He <hetong007@gmail.com>
-Description: This pacakge contains three ensemble learning algorithms based on SVM.
+Description: Three ensemble learning algorithms based on support vector machines. 
+    They all train support vector machines on subset of data and combine the result.
 Depends: 
     R (>= 3.0.2)
 Imports: 

@@ -5,7 +5,7 @@
 \title{Plot alphasvm object}
 \usage{
 \method{plot}{alphasvm}(x, data, formula = NULL, fill = TRUE, grid = 50,
-  slice = list(), symbolPalette = palette(), svSymbol = "x",
+  slice = list(), symbolPalette = grDevices::palette(), svSymbol = "x",
   dataSymbol = "o", ...)
 }
 \arguments{
@@ -29,7 +29,7 @@ Factor levels can either be specified as factors or character vectors of length 
 
 \item{dataSymbol}{Symbol used for data points (other than support vectors).}
 
-\item{...}{additional graphics parameters passed to \code{filled.contour} and \code{plot}.}
+\item{...}{additional graphics parameters passed to \code{graphics::filled.contour} and \code{plot}.}
 }
 \description{
 Plot alphasvm object

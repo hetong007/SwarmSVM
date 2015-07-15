@@ -5,7 +5,7 @@
 \title{Prediction function for an alphasvm object}
 \usage{
 \method{predict}{alphasvm}(object, newdata, decision.values = FALSE,
-  probability = FALSE, ..., na.action = na.omit)
+  probability = FALSE, ..., na.action = stats::na.omit)
 }
 \arguments{
 \item{object}{the object trained from \code{alphasvm}}
@@ -19,8 +19,8 @@
 \item{...}{currently not used}
 
 \item{na.action}{A function to specify the action to be taken if 'NA's are found.
-    The default action is na.omit, which leads to rejection of cases with missing values on any required variable.
-    An alternative is na.fail, which causes an error if NA cases are found. (NOTE: If given, this argument must be named.)}
+    The default action is \code{stats::na.omit}, which leads to rejection of cases with missing values on any required variable.
+    An alternative is \code{stats::na.fail}, which causes an error if NA cases are found. (NOTE: If given, this argument must be named.)}
 }
 \description{
 Prediction function for an alphasvm object

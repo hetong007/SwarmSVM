@@ -12,14 +12,14 @@
 alphasvm(x, ...)
 
 \method{alphasvm}{formula}(formula, data = NULL, ..., subset,
-  na.action = na.omit, scale = FALSE)
+  na.action = stats::na.omit, scale = FALSE)
 
 \method{alphasvm}{default}(x, y = NULL, scale = FALSE, type = NULL,
   kernel = "radial", degree = 3, gamma = if (is.vector(x)) 1 else
   1/ncol(x), coef0 = 0, cost = 1, nu = 0.5, class.weights = NULL,
   cachesize = 40, tolerance = 0.001, epsilon = 0.1, shrinking = TRUE,
   cross = 0, probability = FALSE, fitted = TRUE, alpha = NULL,
-  mute = TRUE, ..., subset, na.action = na.omit)
+  mute = TRUE, ..., subset, na.action = stats::na.omit)
 
 \method{print}{alphasvm}(x, ...)
 
@@ -42,9 +42,9 @@ or of class \code{simple_triplet_matrix} provided by the \code{slam package}).}
 training sample.  (NOTE: If given, this argument must be named.)}
 
 \item{na.action}{A function to specify the action to be taken if \code{NA}s are
-    found. The default action is \code{na.omit}, which leads to rejection of cases
+    found. The default action is \code{stats::na.omit}, which leads to rejection of cases
     with missing values on any required variable. An alternative
-    is \code{na.fail}, which causes an error if \code{NA} cases
+    is \code{stats::na.fail}, which causes an error if \code{NA} cases
     are found. (NOTE: If given, this argument must be named.)}
 
 \item{scale}{A logical vector indicating the variables to be scaled.
