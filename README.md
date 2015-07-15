@@ -12,3 +12,10 @@ It is under development.
 ```r
 devtools::install_github('hetong007/SwarmSVM')
 ```
+
+Now it is on CRAN, you can also install it by
+
+```r
+install.packages('SwarmSVM')
+```
+
