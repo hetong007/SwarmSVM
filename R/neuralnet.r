@@ -42,7 +42,7 @@ neuralnet <-
       if (lifesign != "none") {
         lifesign <- display(hidden, threshold, rep, i, lifesign)
       }
-      flush.console()
+      utils::flush.console()
       result <- calculate.neuralnet(learningrate.limit = learningrate.limit, 
                                     learningrate.factor = learningrate.factor, covariate = covariate, 
                                     response = response, data = data, model.list = model.list, 
@@ -60,7 +60,7 @@ neuralnet <-
         matrix <- cbind(matrix, result$output.vector)
       }
     }
-    flush.console()
+    utils::flush.console()
     if (!is.null(matrix)) {
       weight.count <- length(unlist(list.result[[1]]$weights)) - 
         length(exclude) + length(constant.weights) - sum(constant.weights == 
@@ -104,11 +104,11 @@ varify.variables <-
     }
     data <- as.data.frame(data)
     if (!is.null(formula) && !is.null(data)) {
-      formula <- as.formula(formula)
-      model.vars <- attr(terms(formula), "term.labels")
+      formula <- stats::as.formula(formula)
+      model.vars <- attr(stats::terms(formula), "term.labels")
       formula.reverse <- formula
       formula.reverse[[3]] <- formula[[2]]
-      model.resp <- attr(terms(formula.reverse), "term.labels")
+      model.resp <- attr(stats::terms(formula.reverse), "term.labels")
       model.list <- list(response = model.resp, variables = model.vars)
     } else {
       colnames(x) = paste0('X', 1:ncol(x))
@@ -217,12 +217,12 @@ generate.initial.variables <-
   {
     if (!is.null(formula) && !is.null(data)) {
       formula.reverse <- formula
-      formula.reverse[[2]] <- as.formula(paste(model.list$response[[1]], 
+      formula.reverse[[2]] <- stats::as.formula(paste(model.list$response[[1]], 
                                                "~", model.list$variables[[1]], sep = ""))[[2]]
       formula.reverse[[3]] <- formula[[2]]
-      response <- as.matrix(model.frame(formula.reverse, data))
+      response <- as.matrix(stats::model.frame(formula.reverse, data))
       formula.reverse[[3]] <- formula[[3]]
-      covariate <- as.matrix(model.frame(formula.reverse, data))
+      covariate <- as.matrix(stats::model.frame(formula.reverse, data))
       covariate[, 1] <- 1
       colnames(covariate)[1] <- "intercept"
     } else {
@@ -306,7 +306,7 @@ differentiate <-
       body.fct <- body.fct[2]
     text <- paste("y~", body.fct, sep = "")
     text2 <- paste(deparse(orig.fct)[1], "{}")
-    temp <- deriv(eval(parse(text = text)), "x", func = eval(parse(text = text2)), 
+    temp <- stats::deriv(eval(parse(text = text)), "x", func = eval(parse(text = text2)), 
                   hessian = hessian)
     temp <- deparse(temp)
     derivative <- NULL
@@ -515,14 +515,14 @@ generate.startweights <-
     if (!is.null(exclude)) {
       if (is.null(startweights) || length(startweights) < (length * 
                                                              rep)) 
-        vector[-exclude] <- rnorm(length)
+        vector[-exclude] <- stats::rnorm(length)
       else vector[-exclude] <- startweights[((rep - 1) * length + 
                                                1):(length * rep)]
     }
     else {
       if (is.null(startweights) || length(startweights) < (length * 
                                                              rep)) 
-        vector <- rnorm(length)
+        vector <- stats::rnorm(length)
       else vector <- startweights[((rep - 1) * length + 1):(length * 
                                                               rep)]
     }
@@ -593,7 +593,7 @@ rprop <-
         cat(sprintf(eval(expression(text)), step), "\tmin thresh: ", 
             min.reached.threshold, "\n", rep(" ", lifesign), 
             sep = "")
-        flush.console()
+        utils::flush.console()
       }
       if (algorithm == "rprop+") 
         result <- plus(gradients, gradients.old, weights, 

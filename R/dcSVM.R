@@ -135,7 +135,7 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels,
   if (!testNull(scale)) {
     assertInteger(scale, lower = 1, upper = ncol(x), 
                   min.len = 1, max.len = ncol(x))
-    co = apply(x[,scale, drop = FALSE], 2, var) == 0
+    co = apply(x[,scale, drop = FALSE], 2, stats::var) == 0
     if (any(co)) {
       ind = which(co)
       warning(paste("Variable(s)",
@@ -148,7 +148,7 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels,
     if (length(scale)>0) {
       sds = rep(0, length(scale))
       for (i in 1:length(scale)) {
-        sds[i] = sd(x[,scale[i],drop = FALSE])
+        sds[i] = stats::sd(x[,scale[i],drop = FALSE])
       }
       x[,scale] = scaleBySD(x[,scale,drop = FALSE], sds)
       # x.scaled.center = attr(xtmp, 'scaled:center')

@@ -324,6 +324,19 @@ The parameters can be categorized into the following groups:
 5. `hidden`, `learningrate`, `threshold`, `stepmax` are parameters for the neural network model.
 
 
+Benchmarking
+=======================================================
+
+We offer benchmark codes to compare the performance and efficiency of our implementation. You can find the codes under `inst/benchmark`. 
+
+- `utils.R` contains helper functions to prepare the data.
+- `preprocess_data.R` contains codes that prepares the data for the other benchmark codes.
+- The other four files contains the benchmark codes:
+    - `clustered_SVM.R` contains simple codes for different data sets. `clustered_SVM_Repeat.R` contains repeated experiments and measures on the average performance of `clusterSVM`, and comparison against `LiblineaR::LiblineaR` and `e1071::svm`.
+    - `dc_SVM.R` contains experiments and measures on the performance of `dcSVM`, and comparison against `e1071::svm`.
+    - `gater_SVM.R` contains experiments and measures on the performance of `gaterSVM`, and comparison against `e1071::svm`.
+
+For some experiments running in a reasonable time, we have already generated some results. Those results are subjected to changes in the machine, system environment and the implementation.
 
 
 

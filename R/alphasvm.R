@@ -53,9 +53,9 @@
 #' @param subset An index vector specifying the cases to be used in the 
 #'     training sample.  (NOTE: If given, this argument must be named.)
 #' @param na.action A function to specify the action to be taken if \code{NA}s are 
-#'     found. The default action is \code{na.omit}, which leads to rejection of cases  
+#'     found. The default action is \code{stats::na.omit}, which leads to rejection of cases  
 #'     with missing values on any required variable. An alternative 
-#'     is \code{na.fail}, which causes an error if \code{NA} cases 
+#'     is \code{stats::na.fail}, which causes an error if \code{NA} cases 
 #'     are found. (NOTE: If given, this argument must be named.)
 #' 
 #' @details
@@ -141,7 +141,7 @@ function (x, ...)
 #' @export
 #' 
 alphasvm.formula <-
-function (formula, data = NULL, ..., subset, na.action = na.omit, scale = FALSE)
+function (formula, data = NULL, ..., subset, na.action = stats::na.omit, scale = FALSE)
 {
     call <- match.call()
     if (!inherits(formula, "formula"))
@@ -156,8 +156,8 @@ function (formula, data = NULL, ..., subset, na.action = na.omit, scale = FALSE)
     m <- eval(m, parent.frame())
     Terms <- attr(m, "terms")
     attr(Terms, "intercept") <- 0
-    x <- model.matrix(Terms, m)
-    y <- model.extract(m, "response")
+    x <- stats::model.matrix(Terms, m)
+    y <- stats::model.extract(m, "response")
     attr(x, "na.action") <- attr(y, "na.action") <- attr(m, "na.action")
     if (length(scale) == 1)
         scale <- rep(scale, ncol(x))
@@ -206,7 +206,7 @@ function (x,
           mute        = TRUE,
           ...,
           subset,
-          na.action = na.omit)
+          na.action = stats::na.omit)
 {
     if(inherits(x, "Matrix")) {
         x <- as(x, "matrix.csr")
@@ -273,7 +273,7 @@ function (x,
     ## scaling, subsetting, and NA handling
     if (sparse) {
         scale <- rep(FALSE, ncol(x))
-        if(!is.null(y)) na.fail(y)
+        if(!is.null(y)) stats::na.fail(y)
         x <- SparseM::t(SparseM::t(x)) ## make shure that col-indices are sorted
     } else {
         x <- as.matrix(x)
@@ -298,7 +298,7 @@ function (x,
         if (length(scale) == 1)
             scale <- rep(scale, ncol(x))
         if (any(scale)) {
-            co <- !apply(x[,scale, drop = FALSE], 2, var)
+            co <- !apply(x[,scale, drop = FALSE], 2, stats::var)
             if (any(co)) {
                 warning(paste("Variable(s)",
                               paste(sQuote(colnames(x[,scale,
@@ -556,8 +556,8 @@ function (x,
 #' @param probability a logical variable indicating whether to output the classfication probability
 #' @param ... currently not used
 #' @param na.action A function to specify the action to be taken if 'NA's are found. 
-#'     The default action is na.omit, which leads to rejection of cases with missing values on any required variable. 
-#'     An alternative is na.fail, which causes an error if NA cases are found. (NOTE: If given, this argument must be named.)
+#'     The default action is \code{stats::na.omit}, which leads to rejection of cases with missing values on any required variable. 
+#'     An alternative is \code{stats::na.fail}, which causes an error if NA cases are found. (NOTE: If given, this argument must be named.)
 #' 
 #' @method predict alphasvm
 #' 
@@ -568,7 +568,7 @@ function (object, newdata,
           decision.values = FALSE,
           probability = FALSE,
           ...,
-          na.action = na.omit)
+          na.action = stats::na.omit)
 {
     if (missing(newdata))
         return(fitted(object))
@@ -612,7 +612,7 @@ function (object, newdata,
                 colnames(newdata) <- colnames(object$SV)
             newdata <- na.action(newdata)
             act <- attr(newdata, "na.action")
-            newdata <- model.matrix(delete.response(terms(object)),
+            newdata <- stats::model.matrix(stats::delete.response(stats::terms(object)),
                                     as.data.frame(newdata))
         } else {
             newdata <- na.action(as.matrix(newdata))
@@ -685,7 +685,7 @@ function (object, newdata,
         ret$ret
 
     names(ret2) <- rowns
-    ret2 <- napredict(act, ret2)
+    ret2 <- stats::napredict(act, ret2)
 
     if (decision.values) {
         colns = c()
@@ -696,7 +696,7 @@ function (object, newdata,
                                  "/", object$levels[object$labels[j]],
                                  sep = ""))
         attr(ret2, "decision.values") <-
-            napredict(act,
+            stats::napredict(act,
                       matrix(ret$dec, nrow = nrow(newdata), byrow = TRUE,
                              dimnames = list(rowns, colns)
                              )
@@ -708,7 +708,7 @@ function (object, newdata,
             warning("SVM has not been trained using `probability = TRUE`, probabilities not available for predictions.")
         else
             attr(ret2, "probabilities") <-
-                napredict(act,
+                stats::napredict(act,
                           matrix(ret$prob, nrow = nrow(newdata), byrow = TRUE,
                                  dimnames = list(rowns, object$levels[object$labels])
                                  )
@@ -807,7 +807,7 @@ function(x, center = TRUE, scale = TRUE)
 {
     i <- sapply(x, is.numeric)
     if (ncol(x[, i, drop = FALSE])) {
-        x[, i] <- tmp <- scale.default(x[, i, drop = FALSE], na.omit(center), na.omit(scale))
+        x[, i] <- tmp <- scale.default(x[, i, drop = FALSE], stats::na.omit(center), stats::na.omit(scale))
         if(center || !is.logical(center))
             attr(x, "scaled:center")[i] <- attr(tmp, "scaled:center")
         if(scale || !is.logical(scale))
@@ -829,7 +829,7 @@ function(x, center = TRUE, scale = TRUE)
 #' @param symbolPalette Color palette used for the class the data points and support vectors belong to.
 #' @param svSymbol Symbol used for support vectors.
 #' @param dataSymbol Symbol used for data points (other than support vectors).
-#' @param ... additional graphics parameters passed to \code{filled.contour} and \code{plot}.
+#' @param ... additional graphics parameters passed to \code{graphics::filled.contour} and \code{plot}.
 #' 
 #' @method plot alphasvm
 #' 
@@ -837,18 +837,18 @@ function(x, center = TRUE, scale = TRUE)
 #' 
 plot.alphasvm <-
 function(x, data, formula = NULL, fill = TRUE,
-         grid = 50, slice = list(), symbolPalette = palette(),
+         grid = 50, slice = list(), symbolPalette = grDevices::palette(),
          svSymbol = "x", dataSymbol = "o", ...)
 {
     if (x$type < 3) {
         if (is.null(formula) && ncol(data) == 3) {
-            formula <- formula(delete.response(terms(x)))
+            formula <- formula(stats::delete.response(stats::terms(x)))
             formula[2:3] <- formula[[2]][2:3]
         }
         if (is.null(formula))
             stop("missing formula.")
         if (fill) {
-            sub <- model.frame(formula, data)
+            sub <- stats::model.frame(formula, data)
             xr <- seq(min(sub[, 2]), max(sub[, 2]), length = grid)
             yr <- seq(min(sub[, 1]), max(sub[, 1]), length = grid)
             l <- length(slice)
@@ -856,7 +856,7 @@ function(x, data, formula = NULL, fill = TRUE,
                 slnames <- names(slice)
                 slice <- c(slice, rep(list(0), ncol(data) - 3 -
                                       l))
-                names <- labels(delete.response(terms(x)))
+                names <- labels(stats::delete.response(stats::terms(x)))
                 names(slice) <- c(slnames, names[!names %in%
                                                  c(colnames(sub), slnames)])
             }
@@ -872,40 +872,40 @@ function(x, data, formula = NULL, fill = TRUE,
 
             lis <- c(list(yr), list(xr), slice)
             names(lis)[1:2] <- colnames(sub)
-            new <- expand.grid(lis)[, labels(terms(x))]
+            new <- expand.grid(lis)[, labels(stats::terms(x))]
             preds <- predict(x, new)
-            filled.contour(xr, yr,
+            graphics::filled.contour(xr, yr,
                            matrix(as.numeric(preds),
                                   nrow = length(xr), byrow = TRUE),
                            plot.axes = {
-                               axis(1)
-                               axis(2)
-                               colind <- as.numeric(model.response(model.frame(x, data)))
+                               graphics::axis(1)
+                               graphics::axis(2)
+                               colind <- as.numeric(stats::model.response(stats::model.frame(x, data)))
                                dat1 <- data[-x$index,]
                                dat2 <- data[x$index,]
                                coltmp1 <- symbolPalette[colind[-x$index]]
                                coltmp2 <- symbolPalette[colind[x$index]]
-                               points(formula, data = dat1, pch = dataSymbol, col = coltmp1)
-                               points(formula, data = dat2, pch = svSymbol, col = coltmp2)
+                               graphics::points(formula, data = dat1, pch = dataSymbol, col = coltmp1)
+                               graphics::points(formula, data = dat2, pch = svSymbol, col = coltmp2)
                            },
                            levels = 1:(length(levels(preds)) + 1),
-                           key.axes = axis(4, 1:(length(levels(preds))) + 0.5,
+                           key.axes = graphics::axis(4, 1:(length(levels(preds))) + 0.5,
                            labels = levels(preds),
                            las = 3),
-                           plot.title = title(main = "SVM classification plot",
+                           plot.title = graphics::title(main = "SVM classification plot",
                            xlab = names(lis)[2], ylab = names(lis)[1]),
                            ...)
         }
         else {
             plot(formula, data = data, type = "n", ...)
-            colind <- as.numeric(model.response(model.frame(x,
+            colind <- as.numeric(stats::model.response(stats::model.frame(x,
                                                             data)))
             dat1 <- data[-x$index,]
             dat2 <- data[x$index,]
             coltmp1 <- symbolPalette[colind[-x$index]]
             coltmp2 <- symbolPalette[colind[x$index]]
-            points(formula, data = dat1, pch = dataSymbol, col = coltmp1)
-            points(formula, data = dat2, pch = svSymbol, col = coltmp2)
+            graphics::points(formula, data = dat1, pch = dataSymbol, col = coltmp1)
+            graphics::points(formula, data = dat2, pch = svSymbol, col = coltmp2)
             invisible()
         }
     }
@@ -957,12 +957,12 @@ function (object, svm.file="Rdata.svm", scale.file = "Rdata.scale",
                PACKAGE = "SwarmSVM"
                )$ret
 
-    write.table(data.frame(center = object$x.scale$"scaled:center",
+    utils::write.table(data.frame(center = object$x.scale$"scaled:center",
                            scale  = object$x.scale$"scaled:scale"),
                 file=scale.file, col.names=FALSE, row.names=FALSE)
 
     if (!is.null(object$y.scale))
-        write.table(data.frame(center = object$y.scale$"scaled:center",
+        utils::write.table(data.frame(center = object$y.scale$"scaled:center",
                                scale  = object$y.scale$"scaled:scale"),
                     file=yscale.file, col.names=FALSE, row.names=FALSE)
 }
