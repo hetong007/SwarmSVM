@@ -1,6 +1,6 @@
 Package: SwarmSVM
 Title: Ensemble Learning Algorithms Based on Support Vector Machines
-Version: 0.1
+Version: 0.1-1
 Date: 2015-05-27
 Author: Tong He <hetong007@gmail.com>, Aydin Demircioglu <aydin.demircioglu@ini.ruhr-uni-bochum.de>
 Maintainer: Tong He <hetong007@gmail.com>
