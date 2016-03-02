@@ -5,8 +5,7 @@
 #' @param x the nxp training data matrix. Could be a matrix or a sparse matrix object.
 #' @param y a response vector for prediction tasks with one value for each of the n rows of \code{x}. 
 #'     For classification, the values correspond to class labels and can be a 1xn matrix, 
-#'     a simple vector or a factor. For regression, the values correspond to the values to predict, 
-#'     and can be a 1xn matrix or a simple vector.
+#'     a simple vector or a factor. 
 #' @param k the number of sub-problems divided
 #' @param m the number of sample for kernel kmeans
 #' @param kernel the kernel type: 1 for linear, 2 for polynomial, 3 for gaussian
@@ -266,7 +265,7 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels,
     support = new.support
     alpha = new.alpha
     sendMsg("Finished training in level ", lvl, verbose = verbose)
-    if (early>0 && early<=lvl)
+    if (early > 0 && early == lvl)
       break
   }
   if (early == 0){

@@ -15,8 +15,7 @@ dcSVM(x, y, k = 4, m, kernel = 3, max.levels, early = 0,
 
 \item{y}{a response vector for prediction tasks with one value for each of the n rows of \code{x}.
 For classification, the values correspond to class labels and can be a 1xn matrix,
-a simple vector or a factor. For regression, the values correspond to the values to predict,
-and can be a 1xn matrix or a simple vector.}
+a simple vector or a factor.}
 
 \item{k}{the number of sub-problems divided}
 
