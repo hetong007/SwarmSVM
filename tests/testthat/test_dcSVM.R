@@ -39,20 +39,3 @@ test_that("Performance",{
   expect_true({score>0.9})
 })
 
-test_that("Sparse Input",{
-  local.file.name = tempfile()
-  download.file("http://www.sfu.ca/~hetongh/data/ijcnn1.dcsvm.RData",local.file.name)
-  load(local.file.name)
-  ijcnn1.t = ijcnn1[[2]]
-  ijcnn1 = ijcnn1[[1]]
-  
-  dcsvm.model = dcSVM(x = ijcnn1[,-1], y = ijcnn1[,1], k = 10, max.levels = 1, seed = 1024,
-                      early = 1, gamma = 2, cost = 32, tolerance = 1e-2, m = 5000, scale = FALSE,
-                      valid.x = ijcnn1.t[,-1], valid.y = ijcnn1.t[,1])
-  
-  expect_error({dcsvm.model = dcSVM(x = as.matrix(ijcnn1[,-1]), y = ijcnn1[,1], k = 10, max.levels = 1, seed = 1024,
-                                    early = 1, gamma = 2, cost = 32, tolerance = 1e-2, m = 5000, scale = FALSE,
-                                    valid.x = ijcnn1.t[,-1], valid.y = ijcnn1.t[,1])
-  })
-  
-})
