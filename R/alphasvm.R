@@ -47,6 +47,7 @@
 #' @param alpha Initial values for the coefficients (default: \code{NULL}). 
 #'     A numerical vector for binary classification or a nx(k-1) matrix for a k-class-classification problem.
 #' @param mute a logical value indicating whether to print training information from svm.
+#' @param nclass the number of classes in total.
 #' @param probability logical indicating whether the model should 
 #'     allow for probability predictions.
 #' @param ... additional parameters for the low level fitting function \code{svm.default}
@@ -204,6 +205,7 @@ function (x,
           fitted      = TRUE,
           alpha       = NULL,
           mute        = TRUE,
+          nclass      = NULL,
           ...,
           subset,
           na.action = stats::na.omit)
@@ -337,7 +339,9 @@ function (x,
         stop("Need numeric dependent variable for regression.")
 
     # Type and format check of alpha
-    nclass = length(unique(y))
+    if (testNull(nclass)) {
+        nclass = length(unique(y))
+    }
     if (testNull(alpha)) {
       if (nclass>1) {
         alpha = matrix(0, nrow(x), nclass-1)

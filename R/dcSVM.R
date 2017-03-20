@@ -249,9 +249,9 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels,
       if (length(ind)>1) {
         # train the svm with given support vectors
         if (lvl == max.levels || sum(support[ind])==0) {
-          svm.model = alphasvm(x = x[ind,], y = y[ind], kernel = svm.kernel, ...)
+          svm.model = alphasvm(x = x[ind,], y = y[ind], kernel = svm.kernel, nclass = num.lvls, ...)
         } else {
-          svm.model = alphasvm(x = x[ind,], y = y[ind], kernel = svm.kernel, 
+          svm.model = alphasvm(x = x[ind,], y = y[ind], kernel = svm.kernel, nclass = num.lvls, 
                                alpha = alpha[ind,], ...)
         }
         svm.models[[clst]] = svm.model
@@ -271,7 +271,7 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels,
   if (early == 0){
     # Refine
     ind = which(support)
-    svm.models = alphasvm(x = x[ind,], y = y[ind], kernel = svm.kernel, 
+    svm.models = alphasvm(x = x[ind,], y = y[ind], kernel = svm.kernel, nclass = num.lvls,
                           alpha = alpha[ind,], ...)
     if (final.training) {
       sv.ind = ind[svm.models$index]
@@ -279,7 +279,7 @@ dcSVM = function(x, y, k = 4, m, kernel = 3, max.levels,
       alpha[sv.ind,] = svm.models$coefs
       
       # Final
-      svm.models = alphasvm(x = x, y = y, kernel = svm.kernel, alpha = alpha, ...)
+      svm.models = alphasvm(x = x, y = y, kernel = svm.kernel, alpha = alpha, nclass = num.lvls, ...)
     }
   }
   svm.time = (proc.time()-time.point)[3]
