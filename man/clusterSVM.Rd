@@ -15,8 +15,7 @@ clusterSVM(x, y, centers = NULL, cluster.object = NULL, lambda = 1,
 
 \item{y}{a response vector for prediction tasks with one value for each of the n rows of \code{x}. 
 For classification, the values correspond to class labels and can be a 1xn matrix, 
-a simple vector or a factor. For regression, the values correspond to the values to predict, 
-and can be a 1xn matrix or a simple vector.}
+a simple vector or a factor.}
 
 \item{centers}{an integer indicating the number of centers in clustering.}
 
@@ -30,8 +29,8 @@ and can be a 1xn matrix or a simple vector.}
 
 \item{valid.y}{if provided, it will be used to calculate the validation score with \code{valid.metric}}
 
-\item{valid.metric}{the metric function for the validation result. By default it is the accuracy for classification
-or RMSE for regression. Customized metric is acceptable.}
+\item{valid.metric}{the metric function for the validation result. By default it is the accuracy for classification.
+Customized metric is acceptable.}
 
 \item{type}{the type of the mission for \code{LiblineaR}.}
 
@@ -47,8 +46,7 @@ If NULL, the LIBLINEAR defaults are used, which are:}
 
 \item{wi}{a named vector of weights for the different classes, 
 used for asymmetric class sizes. Not all factor levels have to be supplied (default weight: 1). 
-All components have to be named according to the corresponding class label. 
-Not used in regression mode.}
+All components have to be named according to the corresponding class label.}
 
 \item{verbose}{if set to 0, no information is printed. 
 If set to 1 (default), the running time and validation score (if applicable) will be printed.

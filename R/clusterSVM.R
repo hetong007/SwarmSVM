@@ -70,16 +70,15 @@ csvmTransform = function(x, lambda, cluster.label, sparse = TRUE) {
 #' @param x the nxp training data matrix. Could be a matrix or a sparse matrix object.
 #' @param y a response vector for prediction tasks with one value for each of the n rows of \code{x}. 
 #'     For classification, the values correspond to class labels and can be a 1xn matrix, 
-#'     a simple vector or a factor. For regression, the values correspond to the values to predict, 
-#'     and can be a 1xn matrix or a simple vector.
+#'     a simple vector or a factor.
 #' @param centers an integer indicating the number of centers in clustering.
 #' @param cluster.object an object generated from \code{cluster.fun}, and can be passed to \code{cluster.predict}
 #' @param lambda the weight for the global l2-norm
 #' @param sparse indicating whether the transformation results in a sparse matrix or not
 #' @param valid.x the mxp validation data matrix.
 #' @param valid.y if provided, it will be used to calculate the validation score with \code{valid.metric}
-#' @param valid.metric the metric function for the validation result. By default it is the accuracy for classification
-#'     or RMSE for regression. Customized metric is acceptable.
+#' @param valid.metric the metric function for the validation result. By default it is the accuracy for classification.
+#'     Customized metric is acceptable.
 #' @param type the type of the mission for \code{LiblineaR}.
 #' @param cost cost of constraints violation (default: 1). 
 #'     Rules the trade-off between regularization and correct classification on data. 
@@ -91,7 +90,6 @@ csvmTransform = function(x, lambda, cluster.label, sparse = TRUE) {
 #' @param wi a named vector of weights for the different classes, 
 #'     used for asymmetric class sizes. Not all factor levels have to be supplied (default weight: 1). 
 #'     All components have to be named according to the corresponding class label. 
-#'     Not used in regression mode.
 #' @param verbose if set to 0, no information is printed. 
 #'     If set to 1 (default), the running time and validation score (if applicable) will be printed.
 #'     If set to 2, the running time ,validation score (if applicable) and the \code{LiblineaR} information will be printed.
@@ -286,7 +284,7 @@ clusterSVM = function(x, y, centers = NULL, cluster.object = NULL, lambda = 1, s
 
 #' Predictions with Clustered Support Vector Machines
 #' 
-#' The function applies a model (classification or regression) produced by the 
+#' The function applies a model (classification) produced by the 
 #'  \code{clusterSVM} function to every row of a data matrix and returns the model predictions.
 #' 
 #' @param object Object of class "clusterSVM", created by \code{clusterSVM}.

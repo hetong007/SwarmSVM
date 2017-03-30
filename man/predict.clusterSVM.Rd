@@ -17,6 +17,6 @@
 \item{...}{other parameters passing to \code{predict.LiblineaR}}
 }
 \description{
-The function applies a model (classification or regression) produced by the 
+The function applies a model (classification) produced by the 
  \code{clusterSVM} function to every row of a data matrix and returns the model predictions.
 }
