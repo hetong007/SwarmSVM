@@ -227,11 +227,7 @@ generate.initial.variables <-
       colnames(covariate)[1] <- "intercept"
     } else {
       response = y
-      if (testClass(x, "dgCMatrix")) {
-        covariate = Matrix::cbind(1,x)
-      } else {
-        covariate = cbind(1,x)
-      }
+      covariate = cbind(1,x)
       colnames(covariate) <- c("intercept", paste0('X', 1:(ncol(covariate)-1)))
     }
     if (is.function(act.fct)) {
