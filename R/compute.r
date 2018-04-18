@@ -13,7 +13,7 @@ function (x, covariate, rep = 1)
     length.weights <- length(weights)
     # covariate <- as.matrix(cbind(1, covariate))
     if (testClass(covariate,'dgCMatrix')) {
-      covariate <- cBind(1, covariate)
+      covariate <- cbind(1, covariate)
     } else {
       covariate <- cbind(1, covariate)
     }

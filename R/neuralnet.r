@@ -228,7 +228,7 @@ generate.initial.variables <-
     } else {
       response = y
       if (testClass(x, "dgCMatrix")) {
-        covariate = Matrix::cBind(1,x)
+        covariate = Matrix::cbind(1,x)
       } else {
         covariate = cbind(1,x)
       }

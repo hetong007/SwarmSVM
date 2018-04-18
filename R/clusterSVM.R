@@ -41,7 +41,7 @@ csvmTransform = function(x, lambda, cluster.label, sparse = TRUE) {
       val = c(val, as.vector(x[which(cluster.label == i),]))
     }
     tilde.x = spMatrix(n, k*m, i = row.index, j = col.index, x = val)
-    tilde.x = cBind(x / sqrt(lambda), tilde.x)
+    tilde.x = cbind(x / sqrt(lambda), tilde.x)
     tilde.x = as(tilde.x,'dgCMatrix')
     # LiblineaR only support sparse matrix of the class "matrix.csr"
     tilde.x = as(tilde.x, 'matrix.csr')
