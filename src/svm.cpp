@@ -3413,6 +3413,7 @@ int svm_check_probability_model(const svm_model *model)
 		 model->probA!=NULL);
 }
 
+/*
 void svm_set_print_string_function(void (*print_func)(const char *))
 {
 	if(print_func == NULL)
@@ -3420,4 +3421,4 @@ void svm_set_print_string_function(void (*print_func)(const char *))
 	else
 		svm_print_string = print_func;
 }
-
+*/

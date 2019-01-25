@@ -474,7 +474,7 @@ function (x,
     } else {
       cret$index = NULL
     }
-    if (is.null(cret$index) || cret$index == 0) {
+    if (is.null(cret$index) || (length(cret$index) == 1 && cret$index == 0)) {
       SV = NULL
     } else {
       if (sparse) {
