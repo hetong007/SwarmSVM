@@ -4,9 +4,18 @@
 \alias{plot.alphasvm}
 \title{Plot alphasvm object}
 \usage{
-\method{plot}{alphasvm}(x, data, formula = NULL, fill = TRUE, grid = 50,
-  slice = list(), symbolPalette = grDevices::palette(), svSymbol = "x",
-  dataSymbol = "o", ...)
+\method{plot}{alphasvm}(
+  x,
+  data,
+  formula = NULL,
+  fill = TRUE,
+  grid = 50,
+  slice = list(),
+  symbolPalette = grDevices::palette(),
+  svSymbol = "x",
+  dataSymbol = "o",
+  ...
+)
 }
 \arguments{
 \item{x}{An object of class \code{alphasvm}}

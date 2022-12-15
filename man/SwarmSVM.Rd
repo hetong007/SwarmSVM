@@ -3,7 +3,6 @@
 \docType{package}
 \name{SwarmSVM}
 \alias{SwarmSVM}
-\alias{SwarmSVM-package}
 \title{SwarmSVM: A Package for several Ensemble Support Vector Machine Models}
 \description{
 The SwarmSVM package contains three differenct Ensemble SVM models, 

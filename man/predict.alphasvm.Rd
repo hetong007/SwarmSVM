@@ -4,8 +4,14 @@
 \alias{predict.alphasvm}
 \title{Prediction function for an alphasvm object}
 \usage{
-\method{predict}{alphasvm}(object, newdata, decision.values = FALSE,
-  probability = FALSE, ..., na.action = stats::na.omit)
+\method{predict}{alphasvm}(
+  object,
+  newdata,
+  decision.values = FALSE,
+  probability = FALSE,
+  ...,
+  na.action = stats::na.omit
+)
 }
 \arguments{
 \item{object}{the object trained from \code{alphasvm}}

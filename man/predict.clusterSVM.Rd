@@ -4,8 +4,7 @@
 \alias{predict.clusterSVM}
 \title{Predictions with Clustered Support Vector Machines}
 \usage{
-\method{predict}{clusterSVM}(object, newdata = NULL, cluster.predict = NULL,
-  ...)
+\method{predict}{clusterSVM}(object, newdata = NULL, cluster.predict = NULL, ...)
 }
 \arguments{
 \item{object}{Object of class "clusterSVM", created by \code{clusterSVM}.}

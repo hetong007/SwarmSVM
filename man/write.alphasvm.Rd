@@ -4,8 +4,12 @@
 \alias{write.alphasvm}
 \title{Write alphasvm object}
 \usage{
-\method{write}{alphasvm}(object, svm.file = "Rdata.svm",
-  scale.file = "Rdata.scale", yscale.file = "Rdata.yscale")
+\method{write}{alphasvm}(
+  object,
+  svm.file = "Rdata.svm",
+  scale.file = "Rdata.scale",
+  yscale.file = "Rdata.yscale"
+)
 }
 \arguments{
 \item{object}{Object of class "alphasvm", created by \code{alphasvm}.}

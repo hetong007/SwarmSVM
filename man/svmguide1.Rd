@@ -4,8 +4,10 @@
 \name{svmguide1}
 \alias{svmguide1}
 \title{svmguide1}
-\format{A list of two data objects \code{svmguide1} and \code{svmguide1.t}. 
-   The first column is the target variable.}
+\format{
+A list of two data objects \code{svmguide1} and \code{svmguide1.t}. 
+   The first column is the target variable.
+}
 \usage{
 data(svmguide1)
 }

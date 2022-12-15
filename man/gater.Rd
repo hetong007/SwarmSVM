@@ -4,8 +4,17 @@
 \alias{gater}
 \title{Gater function for mixture SVMs}
 \usage{
-gater(x, y, S, hidden, learningrate = 0.01, threshold = 0.01,
-  stepmax = 100, verbose = verbose, ...)
+gater(
+  x,
+  y,
+  S,
+  hidden,
+  learningrate = 0.01,
+  threshold = 0.01,
+  stepmax = 100,
+  verbose = verbose,
+  ...
+)
 }
 \arguments{
 \item{x}{the nxp training data matrix. Could be a matrix or a sparse matrix object.}

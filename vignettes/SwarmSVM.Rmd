@@ -31,7 +31,7 @@ These two ideas focus on the efficiency and accuracy respectively. Specifically,
 Data
 ==================================
 
-In this package, we choose a small data set to demonstrate the usage of our functions. The data set is `svmguide1` from [libsvm's official website](http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary.html). The data is collected from an astroparticle application from Jan Conrad of Uppsala University, Sweden.
+In this package, we choose a small data set to demonstrate the usage of our functions. The data set is `svmguide1` from [libsvm's official website](https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary.html). The data is collected from an astroparticle application from Jan Conrad of Uppsala University, Sweden.
 
 We can load it by 
 

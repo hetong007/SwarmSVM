@@ -4,11 +4,28 @@
 \alias{clusterSVM}
 \title{Clustered Support Vector Machine}
 \usage{
-clusterSVM(x, y, centers = NULL, cluster.object = NULL, lambda = 1,
-  sparse = TRUE, valid.x = NULL, valid.y = NULL, valid.metric = NULL,
-  type = 1, cost = 1, epsilon = NULL, bias = TRUE, wi = NULL,
-  verbose = 1, seed = NULL, cluster.method = "kmeans",
-  cluster.fun = NULL, cluster.predict = NULL, ...)
+clusterSVM(
+  x,
+  y,
+  centers = NULL,
+  cluster.object = NULL,
+  lambda = 1,
+  sparse = TRUE,
+  valid.x = NULL,
+  valid.y = NULL,
+  valid.metric = NULL,
+  type = 1,
+  cost = 1,
+  epsilon = NULL,
+  bias = TRUE,
+  wi = NULL,
+  verbose = 1,
+  seed = NULL,
+  cluster.method = "kmeans",
+  cluster.fun = NULL,
+  cluster.predict = NULL,
+  ...
+)
 }
 \arguments{
 \item{x}{the nxp training data matrix. Could be a matrix or a sparse matrix object.}

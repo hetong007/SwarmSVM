@@ -4,9 +4,23 @@
 \alias{gaterSVM}
 \title{Mixture SVMs with gater function}
 \usage{
-gaterSVM(x, y, m, c = 1, max.iter, hidden = 5, learningrate = 0.01,
-  threshold = 0.01, stepmax = 100, seed = NULL, valid.x = NULL,
-  valid.y = NULL, valid.metric = NULL, verbose = FALSE, ...)
+gaterSVM(
+  x,
+  y,
+  m,
+  c = 1,
+  max.iter,
+  hidden = 5,
+  learningrate = 0.01,
+  threshold = 0.01,
+  stepmax = 100,
+  seed = NULL,
+  valid.x = NULL,
+  valid.y = NULL,
+  valid.metric = NULL,
+  verbose = FALSE,
+  ...
+)
 }
 \arguments{
 \item{x}{the nxp training data matrix. Could be a matrix or an object that can be transformed into a matrix object.}

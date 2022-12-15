@@ -603,7 +603,7 @@ void Solver::Solve(int l, const QMatrix& Q, const double *p_, const schar *y_,
 			info(".");
 		}
 
-		int i,j;
+		int i;
     //Rprintf("\n%d ",i);
 		if(select_working_set(i)!=0)
 		{
@@ -843,10 +843,7 @@ int Solver::select_working_set(int &out_i)
 	//    -y_j*grad(f)_j < -y_i*grad(f)_i, j in I_low(\alpha)
 	
 	double Gmax = -INF;
-	double Gmax2 = -INF;
 	int Gmax_idx = -1;
-	int Gmin_idx = -1;
-	double obj_diff_min = INF;
 
 	int t;
 	for(t=0;t<active_size;t++)
